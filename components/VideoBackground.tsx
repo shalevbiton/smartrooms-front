@@ -44,39 +44,41 @@ export default function VideoBackground({ fallbackBackground = 'var(--bg-main)',
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
+    <>
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
 
-      {/* --- Background Area --- */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
+        {/* --- Background Area --- */}
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
 
-        {/* The Condition: If videoFile exists, show video. Otherwise, show image/fallback. */}
-        {videoFile ? (
-          <video
-            src={videoFile}
-            autoPlay
-            loop
-            muted
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              backgroundImage: fallbackBackground.startsWith('http') || fallbackBackground.startsWith('/') ? `url(${fallbackBackground})` : undefined,
-              backgroundColor: !fallbackBackground.startsWith('http') && !fallbackBackground.startsWith('/') ? fallbackBackground : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-        )}
+          {/* The Condition: If videoFile exists, show video. Otherwise, show image/fallback. */}
+          {videoFile ? (
+            <video
+              src={videoFile}
+              autoPlay
+              loop
+              muted
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundImage: fallbackBackground.startsWith('http') || fallbackBackground.startsWith('/') ? `url(${fallbackBackground})` : undefined,
+                backgroundColor: !fallbackBackground.startsWith('http') && !fallbackBackground.startsWith('/') ? fallbackBackground : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            />
+          )}
 
-        {/* Overlay */}
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}></div>
+          {/* Overlay */}
+          <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}></div>
+        </div>
       </div>
 
       {/* --- Upload Controls --- */}
-      {/* Positioned at bottom-left to be accessible but unobtrusive */}
+      {/* Positioned at bottom-left, moved OUTSIDE the z-index -1 container to ensure clickability */}
       <div style={{
         position: 'fixed',
         bottom: '20px',
@@ -85,7 +87,7 @@ export default function VideoBackground({ fallbackBackground = 'var(--bg-main)',
         background: 'rgba(255,255,255,0.9)',
         borderRadius: '12px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-        zIndex: 99999, // Ensure it's on top
+        zIndex: 99999, // Ensure it's on top of everything
         display: 'flex',
         flexDirection: 'column',
         gap: '10px'
@@ -116,8 +118,7 @@ export default function VideoBackground({ fallbackBackground = 'var(--bg-main)',
           </button>
         )}
       </div>
-
-    </div>
+    </>
   );
 }
 
