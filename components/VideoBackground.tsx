@@ -92,7 +92,7 @@ export default function VideoBackground({
             alignItems: 'center',
             gap: '10px',
             padding: '12px 20px',
-            backgroundColor: theme === 'light' ? '#1a759f' : 'rgba(255, 255, 255, 0.15)',
+            backgroundColor: theme === 'light' ? '#1a759f' : '#fb6f92',
             backdropFilter: 'blur(10px)',
             border: theme === 'light' ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
             borderRadius: '24px',

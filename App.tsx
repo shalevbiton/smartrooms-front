@@ -93,7 +93,7 @@ const App: React.FC = () => {
   }, []);
 
   const [systemBackground] = useState<string>(() => {
-    return localStorage.getItem('smartroom_bg') || 'https://upload.wikimedia.org/wikipedia/commons/1/18/Yamar_metzach.png';
+    return localStorage.getItem('smartroom_bg') || '#f2e9dc';
   });
 
   const [currentView, setCurrentView] = useState('calendar');
@@ -491,7 +491,7 @@ const App: React.FC = () => {
       />
 
       {/* Additional overlay for content readability */}
-      <div className="absolute inset-0 bg-main/85 backdrop-blur-[4px] z-0 pointer-events-none transition-colors duration-300"></div>
+      <div className="absolute inset-0 bg-main/60 backdrop-blur-[4px] z-0 pointer-events-none transition-colors duration-300"></div>
 
       <Sidebar
         currentUser={currentUser}
