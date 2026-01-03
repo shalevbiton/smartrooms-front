@@ -93,7 +93,7 @@ const App: React.FC = () => {
   }, []);
 
   const [systemBackground] = useState<string>(() => {
-    return localStorage.getItem('smartroom_bg') || '#f2e9dc';
+    return localStorage.getItem('smartroom_bg') || 'var(--bg-main)';
   });
 
   const [currentView, setCurrentView] = useState('calendar');
@@ -486,12 +486,9 @@ const App: React.FC = () => {
       {/* Video Background Component */}
       <VideoBackground
         fallbackBackground={activeBackground || 'var(--bg-main)'}
-        overlayOpacity={0.4}
+        overlayOpacity={0}
         theme={theme}
       />
-
-      {/* Additional overlay for content readability */}
-      <div className="absolute inset-0 bg-main/60 backdrop-blur-[4px] z-0 pointer-events-none transition-colors duration-300"></div>
 
       <Sidebar
         currentUser={currentUser}

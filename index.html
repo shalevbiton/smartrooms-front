@@ -1,177 +1,202 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SmartRoom - מערכת הזמנות</title>
-    <!-- Hybrid Adaptive Theming: Persistent Theme Detection -->
-    <script>
-      (function() {
-        try {
-          const savedTheme = localStorage.getItem('smartroom_theme');
-          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          const theme = savedTheme || systemTheme;
-          
-          document.documentElement.setAttribute('data-theme', theme);
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartRoom - מערכת הזמנות</title>
+  <!-- Hybrid Adaptive Theming: Persistent Theme Detection -->
+  <script>
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem('smartroom_theme');
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const theme = savedTheme || systemTheme;
+
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
           if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
+            document.body.classList.add('dark-mode');
           } else {
-            document.documentElement.classList.remove('dark');
+            document.body.classList.remove('dark-mode');
           }
-          
-          window.addEventListener('DOMContentLoaded', () => {
-            if (theme === 'dark') {
-              document.body.classList.add('dark-mode');
-            } else {
-              document.body.classList.remove('dark-mode');
-            }
-          });
-        } catch (e) { console.error('Theme initialization failed', e); }
-      })();
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@100..900&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Noto Sans Hebrew', 'sans-serif'],
-            },
-            colors: {
-              surface: 'var(--bg-surface)',
-              main: 'var(--bg-main)',
-              tertiary: 'var(--bg-tertiary)',
-              primary: 'var(--text-primary)',
-              secondary: 'var(--text-secondary)',
-              brand: 'var(--brand-primary)',
-              'brand-hover': 'var(--brand-hover)',
-              subtle: 'var(--border-subtle)',
-              'status-ok': 'var(--status-available)',
-            }
+        });
+      } catch (e) { console.error('Theme initialization failed', e); }
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@100..900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Noto Sans Hebrew', 'sans-serif'],
+          },
+          colors: {
+            surface: 'var(--bg-surface)',
+            main: 'var(--bg-main)',
+            tertiary: 'var(--bg-tertiary)',
+            primary: 'var(--text-primary)',
+            secondary: 'var(--text-secondary)',
+            brand: 'var(--brand-primary)',
+            'brand-hover': 'var(--brand-hover)',
+            subtle: 'var(--border-subtle)',
+            'status-ok': 'var(--status-available)',
           }
         }
       }
-    </script>
-    <style>
-      :root {
-        --bg-main: #f2e9dc;
-        --bg-surface: #f2e9dc;
-        --bg-tertiary: #e3d5ca;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --brand-primary: #1a759f;
-        --brand-hover: #145a7a;
-        --border-subtle: #d3c1ae;
-        --status-available: #059669; /* Dark emerald for light mode */
-        
-        /* User-provided 10-color green spectrum for Light Mode, cycled to 24 slots */
-        --booking-1: #10451d;
-        --booking-2: #155d27;
-        --booking-3: #1a7431;
-        --booking-4: #208b3a;
-        --booking-5: #25a244;
-        --booking-6: #2dc653;
-        --booking-7: #4ad66d;
-        --booking-8: #6ede8a;
-        --booking-9: #92e6a7;
-        --booking-10: #b7efc5;
-        --booking-11: #10451d;
-        --booking-12: #155d27;
-        --booking-13: #1a7431;
-        --booking-14: #208b3a;
-        --booking-15: #25a244;
-        --booking-16: #2dc653;
-        --booking-17: #4ad66d;
-        --booking-18: #6ede8a;
-        --booking-19: #92e6a7;
-        --booking-20: #b7efc5;
-        --booking-21: #10451d;
-        --booking-22: #155d27;
-        --booking-23: #1a7431;
-        --booking-24: #208b3a;
-      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-main: #f2e9dc;
+      --bg-surface: #f2e9dc;
+      --bg-tertiary: #e3d5ca;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --brand-primary: #1a759f;
+      --brand-hover: #145a7a;
+      --border-subtle: #d3c1ae;
+      --status-available: #059669;
+      /* Dark emerald for light mode */
 
-      .dark-mode, [data-theme='dark'] {
-        --bg-main: #121212;
-        --bg-surface: #1E1E1E;
-        --bg-tertiary: #252525;
-        --text-primary: #FFFFFF;
-        --text-secondary: #A1A1AA;
-        --brand-primary: #fb6f92;
-        --brand-hover: #e05a7d;
-        --border-subtle: #333333;
-        --status-available: #fae1dd; /* Requested color for available status in dark mode */
+      /* User-provided 10-color green spectrum for Light Mode, cycled to 24 slots */
+      --booking-1: #10451d;
+      --booking-2: #155d27;
+      --booking-3: #1a7431;
+      --booking-4: #208b3a;
+      --booking-5: #25a244;
+      --booking-6: #2dc653;
+      --booking-7: #4ad66d;
+      --booking-8: #6ede8a;
+      --booking-9: #92e6a7;
+      --booking-10: #b7efc5;
+      --booking-11: #10451d;
+      --booking-12: #155d27;
+      --booking-13: #1a7431;
+      --booking-14: #208b3a;
+      --booking-15: #25a244;
+      --booking-16: #2dc653;
+      --booking-17: #4ad66d;
+      --booking-18: #6ede8a;
+      --booking-19: #92e6a7;
+      --booking-20: #b7efc5;
+      --booking-21: #10451d;
+      --booking-22: #155d27;
+      --booking-23: #1a7431;
+      --booking-24: #208b3a;
+    }
 
-        /* User-provided Pink/Fuchsia spectrum for Dark Mode, cycled to 24 slots */
-        --booking-1: #ff0a54;
-        --booking-2: #ff477e;
-        --booking-3: #ff5c8a;
-        --booking-4: #ff7096;
-        --booking-5: #ff85a1;
-        --booking-6: #ff99ac;
-        --booking-7: #fbb1bd;
-        --booking-8: #f9bec7;
-        --booking-9: #f7cad0;
-        --booking-10: #fae0e4;
-        --booking-11: #ff0a54;
-        --booking-12: #ff477e;
-        --booking-13: #ff5c8a;
-        --booking-14: #ff7096;
-        --booking-15: #ff85a1;
-        --booking-16: #ff99ac;
-        --booking-17: #fbb1bd;
-        --booking-18: #f9bec7;
-        --booking-19: #f7cad0;
-        --booking-20: #fae0e4;
-        --booking-21: #ff0a54;
-        --booking-22: #ff477e;
-        --booking-23: #ff5c8a;
-        --booking-24: #ff7096;
-      }
+    .dark-mode,
+    [data-theme='dark'] {
+      --bg-main: #1E1E1E;
+      --bg-surface: #1E1E1E;
+      --bg-tertiary: #252525;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A1A1AA;
+      --brand-primary: #fb6f92;
+      --brand-hover: #e05a7d;
+      --border-subtle: #333333;
+      --status-available: #fae1dd;
+      /* Requested color for available status in dark mode */
 
-      html {
-        height: 100%;
-        overflow-y: auto;
-      }
+      /* User-provided Pink/Fuchsia spectrum for Dark Mode, cycled to 24 slots */
+      --booking-1: #ff0a54;
+      --booking-2: #ff477e;
+      --booking-3: #ff5c8a;
+      --booking-4: #ff7096;
+      --booking-5: #ff85a1;
+      --booking-6: #ff99ac;
+      --booking-7: #fbb1bd;
+      --booking-8: #f9bec7;
+      --booking-9: #f7cad0;
+      --booking-10: #fae0e4;
+      --booking-11: #ff0a54;
+      --booking-12: #ff477e;
+      --booking-13: #ff5c8a;
+      --booking-14: #ff7096;
+      --booking-15: #ff85a1;
+      --booking-16: #ff99ac;
+      --booking-17: #fbb1bd;
+      --booking-18: #f9bec7;
+      --booking-19: #f7cad0;
+      --booking-20: #fae0e4;
+      --booking-21: #ff0a54;
+      --booking-22: #ff477e;
+      --booking-23: #ff5c8a;
+      --booking-24: #ff7096;
+    }
 
-      body { 
-        font-family: 'Noto Sans Hebrew', sans-serif; 
-        background-color: var(--bg-main);
-        color: var(--text-primary);
-        transition: background-color 0.2s ease, color 0.2s ease;
-        margin: 0;
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-      }
+    html {
+      height: 100%;
+      overflow-y: auto;
+    }
 
-      #root {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
+    body {
+      font-family: 'Noto Sans Hebrew', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      margin: 0;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
 
-      .system-logo {
-        filter: none !important;
-        opacity: 1 !important;
-        mix-blend-mode: normal !important;
-        display: block !important;
-        visibility: visible !important;
-      }
+    #root {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
 
-      /* Custom Scrollbar Styles */
-      ::-webkit-scrollbar { width: 8px; height: 8px; }
-      ::-webkit-scrollbar-track { background: var(--bg-main); }
-      ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
-      ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+    .system-logo {
+      filter: none !important;
+      opacity: 1 !important;
+      mix-blend-mode: normal !important;
+      display: block !important;
+      visibility: visible !important;
+    }
 
-      .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
-    </style>
+    /* Custom Scrollbar Styles */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-subtle);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--border-subtle);
+      border-radius: 10px;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -186,8 +211,10 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>
