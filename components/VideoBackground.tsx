@@ -4,9 +4,14 @@ import { Upload, X, Video } from 'lucide-react';
 interface VideoBackgroundProps {
   fallbackBackground?: string;
   overlayOpacity?: number;
+  theme?: 'light' | 'dark';
 }
 
-export default function VideoBackground({ fallbackBackground = 'var(--bg-main)', overlayOpacity = 0.4 }: VideoBackgroundProps) {
+export default function VideoBackground({
+  fallbackBackground = 'var(--bg-main)',
+  overlayOpacity = 0.4,
+  theme = 'dark'
+}: VideoBackgroundProps) {
   const [videoFile, setVideoFile] = useState<string | null>(() => {
     return localStorage.getItem('smartroom_video_bg');
   });
@@ -87,9 +92,9 @@ export default function VideoBackground({ fallbackBackground = 'var(--bg-main)',
             alignItems: 'center',
             gap: '10px',
             padding: '12px 20px',
-            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            backgroundColor: theme === 'light' ? '#1a759f' : 'rgba(255, 255, 255, 0.15)',
             backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            border: theme === 'light' ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
             borderRadius: '24px',
             color: 'white',
             cursor: 'pointer',
@@ -103,6 +108,7 @@ export default function VideoBackground({ fallbackBackground = 'var(--bg-main)',
             justifyContent: isHovered || !videoFile ? 'flex-start' : 'center'
           }}
           title={!isHovered && videoFile ? "העלאת רקע" : ""}
+          className="hover:opacity-90 active:scale-95"
         >
           <Upload size={20} />
           {(isHovered || !videoFile) && <span>{videoFile ? 'החלף וידאו' : 'העלה וידאו רקע'}</span>}

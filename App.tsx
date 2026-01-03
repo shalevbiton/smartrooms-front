@@ -487,6 +487,7 @@ const App: React.FC = () => {
       <VideoBackground
         fallbackBackground={activeBackground || 'var(--bg-main)'}
         overlayOpacity={0.4}
+        theme={theme}
       />
 
       {/* Additional overlay for content readability */}
