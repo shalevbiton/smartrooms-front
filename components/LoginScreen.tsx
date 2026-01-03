@@ -1,17 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { 
-  UserPlus, 
-  AlertCircle, 
-  CheckCircle, 
-  Lock, 
-  LogIn, 
-  X, 
-  Camera, 
-  CreditCard, 
-  Eye, 
-  EyeOff, 
+import {
+  UserPlus,
+  AlertCircle,
+  CheckCircle,
+  Lock,
+  LogIn,
+  X,
+  Camera,
+  CreditCard,
+  Eye,
+  EyeOff,
   Loader2
 } from 'lucide-react';
 
@@ -40,7 +40,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  
+
   const [regPersonalId, setRegPersonalId] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
@@ -50,30 +50,30 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
   const [newJobTitle, setNewJobTitle] = useState('');
   const [newAvatar, setNewAvatar] = useState('');
   const [savedUsers, setSavedUsers] = useState<User[]>([]);
-  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   useEffect(() => {
     try {
-        const saved = localStorage.getItem('smartroom_saved_users');
-        if (saved) setSavedUsers(JSON.parse(saved));
+      const saved = localStorage.getItem('smartroom_saved_users');
+      if (saved) setSavedUsers(JSON.parse(saved));
     } catch (e) { console.error("Failed to load saved users", e); }
   }, []);
 
   const handleRemoveSavedUser = (userId: string, e: React.MouseEvent) => {
-      e.stopPropagation();
-      const newSaved = savedUsers.filter(u => u.id !== userId);
-      setSavedUsers(newSaved);
-      localStorage.setItem('smartroom_saved_users', JSON.stringify(newSaved));
-      if (onRemoveUser) onRemoveUser(userId);
+    e.stopPropagation();
+    const newSaved = savedUsers.filter(u => u.id !== userId);
+    setSavedUsers(newSaved);
+    localStorage.setItem('smartroom_saved_users', JSON.stringify(newSaved));
+    if (onRemoveUser) onRemoveUser(userId);
   };
 
   const handleQuickLoginSelect = (user: User) => {
-      setLoginId(user.personalId);
-      setLoginPassword('');
-      setRememberMe(true);
-      setActiveTab('login');
-      setNotification({ type: 'success', message: `ברוך שובך, ${user.name}. אנא הזן את הסיסמה שלך.` });
+    setLoginId(user.personalId);
+    setLoginPassword('');
+    setRememberMe(true);
+    setActiveTab('login');
+    setNotification({ type: 'success', message: `ברוך שובך, ${user.name}. אנא הזן את הסיסמה שלך.` });
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -82,20 +82,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
 
     const user = existingUsers.find(u => u.personalId === loginId.trim());
     if (!user) {
-        setNotification({ type: 'error', message: 'משתמש לא נמצא עם מספר אישי זה.' });
-        return;
+      setNotification({ type: 'error', message: 'משתמש לא נמצא עם מספר אישי זה.' });
+      return;
     }
 
     const hashedInput = hashPassword(loginPassword);
-    const isValid = user.password === hashedInput || user.password === loginPassword; 
+    const isValid = user.password === hashedInput || user.password === loginPassword;
     if (!isValid) {
-        setNotification({ type: 'error', message: 'סיסמה שגויה.' });
-        return;
+      setNotification({ type: 'error', message: 'סיסמה שגויה.' });
+      return;
     }
 
     if (user.status !== 'APPROVED') {
-        setNotification({ type: 'error', message: 'חשבונך עדיין ממתין לאישור או שנדחה.' });
-        return;
+      setNotification({ type: 'error', message: 'חשבונך עדיין ממתין לאישור או שנדחה.' });
+      return;
     }
 
     onLogin(user, rememberMe);
@@ -111,7 +111,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
         img.onload = () => {
           const canvas = document.createElement('canvas');
           let width = img.width, height = img.height, MAX_SIZE = 400;
-          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } }
           else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
           canvas.width = width; canvas.height = height;
           const ctx = canvas.getContext('2d');
@@ -145,20 +145,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     if (existingUsers.some(u => u.personalId === regPersonalId.trim())) {
-        setNotification({ type: 'error', message: 'מספר אישי זה כבר רשום.' });
-        return;
+      setNotification({ type: 'error', message: 'מספר אישי זה כבר רשום.' });
+      return;
     }
     if (!/^\d{7}$/.test(regPersonalId)) {
-        setNotification({ type: 'error', message: 'מספר אישי חייב להכיל בדיוק 7 ספרות.' });
-        return;
+      setNotification({ type: 'error', message: 'מספר אישי חייב להכיל בדיוק 7 ספרות.' });
+      return;
     }
     if (regPassword.length < 6) {
-        setNotification({ type: 'error', message: 'הסיסמה חייבת להכיל לפחות 6 תווים.' });
-        return;
+      setNotification({ type: 'error', message: 'הסיסמה חייבת להכיל לפחות 6 תווים.' });
+      return;
     }
     if (!/^\d{10}$/.test(newPhoneNumber)) {
-        setNotification({ type: 'error', message: 'מספר הטלפון חייב להכיל בדיוק 10 ספרות.' });
-        return;
+      setNotification({ type: 'error', message: 'מספר הטלפון חייב להכיל בדיוק 10 ספרות.' });
+      return;
     }
 
     if (newName.trim() && newBase.trim() && newJobTitle.trim()) {
@@ -179,15 +179,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
       </div>
 
       <div className="bg-surface/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden relative z-10 border border-subtle animate-in fade-in zoom-in-95 duration-500">
-        
+
         {/* LOGO SECTION - EVEN LARGER LOGO & CLEAN BG */}
         <div className="text-center pt-10 pb-4 px-8 flex flex-col items-center">
           <div className="relative h-72 w-full flex items-center justify-center mb-2">
             <picture className="flex items-center justify-center">
-              <img 
-                src={isDark ? "/logo_dark.png" : "/logo_light.png"} 
-                alt="SmartRoom Identity" 
-                className="h-56 w-auto object-contain system-logo transition-transform duration-300"
+              <img
+                src={isDark ? "/logo_dark.png" : "/logo_light.png"}
+                alt="SmartRoom Identity"
+                className="h-56 w-auto object-contain system-logo transition-transform duration-300 border-2 border-black dark:border-white rounded-3xl p-4 bg-surface/30"
                 loading="eager"
               />
             </picture>
@@ -195,34 +195,34 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
         </div>
 
         {savedUsers.length > 0 && activeTab === 'login' && (
-             <div className="px-8 mb-6 mt-2">
-                <p className="text-[10px] font-black text-secondary uppercase tracking-widest mb-3 text-center opacity-70">כניסות אחרונות</p>
-                <div className="flex gap-4 justify-center">
-                    {savedUsers.slice(0, 3).map(user => (
-                        <div key={user.id} onClick={() => handleQuickLoginSelect(user)} className="relative group cursor-pointer flex flex-col items-center">
-                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-subtle group-hover:border-brand transition-all shadow-sm ring-4 ring-transparent group-hover:ring-brand/10">
-                                {user.avatar ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-tertiary flex items-center justify-center text-brand font-bold">{user.name.charAt(0)}</div>}
-                            </div>
-                            <span className="text-[10px] text-primary mt-1.5 font-bold max-w-[64px] truncate">{user.name.split(' ')[0]}</span>
-                            <button onClick={(e) => handleRemoveSavedUser(user.id, e)} className="absolute -top-1 -right-1 bg-surface text-secondary hover:bg-red-500 hover:text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md"><X size={10} /></button>
-                        </div>
-                    ))}
+          <div className="px-8 mb-6 mt-2">
+            <p className="text-[10px] font-black text-secondary uppercase tracking-widest mb-3 text-center opacity-70">כניסות אחרונות</p>
+            <div className="flex gap-4 justify-center">
+              {savedUsers.slice(0, 3).map(user => (
+                <div key={user.id} onClick={() => handleQuickLoginSelect(user)} className="relative group cursor-pointer flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-subtle group-hover:border-brand transition-all shadow-sm ring-4 ring-transparent group-hover:ring-brand/10">
+                    {user.avatar ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-tertiary flex items-center justify-center text-brand font-bold">{user.name.charAt(0)}</div>}
+                  </div>
+                  <span className="text-[10px] text-primary mt-1.5 font-bold max-w-[64px] truncate">{user.name.split(' ')[0]}</span>
+                  <button onClick={(e) => handleRemoveSavedUser(user.id, e)} className="absolute -top-1 -right-1 bg-surface text-secondary hover:bg-red-500 hover:text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md"><X size={10} /></button>
                 </div>
-             </div>
+              ))}
+            </div>
+          </div>
         )}
 
         <div className="px-8 mb-6 mt-4">
-            <div className="flex bg-tertiary p-1.5 rounded-2xl border border-subtle">
-                <button onClick={() => { setActiveTab('login'); setNotification(null); }} className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'login' ? 'bg-surface text-brand shadow-sm ring-1 ring-black/5' : 'text-secondary hover:text-primary'}`}>התחברות</button>
-                <button onClick={() => { setActiveTab('register'); setNotification(null); }} className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'register' ? 'bg-surface text-brand shadow-sm ring-1 ring-black/5' : 'text-secondary hover:text-primary'}`}>הרשמה</button>
-            </div>
+          <div className="flex bg-tertiary p-1.5 rounded-2xl border border-subtle">
+            <button onClick={() => { setActiveTab('login'); setNotification(null); }} className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'login' ? 'bg-surface text-brand shadow-sm ring-1 ring-black/5' : 'text-secondary hover:text-primary'}`}>התחברות</button>
+            <button onClick={() => { setActiveTab('register'); setNotification(null); }} className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'register' ? 'bg-surface text-brand shadow-sm ring-1 ring-black/5' : 'text-secondary hover:text-primary'}`}>הרשמה</button>
+          </div>
         </div>
 
         <div className="px-8 pb-12">
           {notification && (
             <div className={`mb-6 p-4 rounded-2xl flex items-start gap-3 text-sm animate-in slide-in-from-top-2 border ${notification.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                {notification.type === 'success' ? <CheckCircle size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}
-                <span className="font-bold">{notification.message}</span>
+              {notification.type === 'success' ? <CheckCircle size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}
+              <span className="font-bold">{notification.message}</span>
             </div>
           )}
 
@@ -230,27 +230,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
             <form onSubmit={handleLoginSubmit} className="space-y-5">
               <div className="space-y-4">
                 <div className="relative group">
-                    <CreditCard className="absolute left-4 top-3.5 text-secondary group-focus-within:text-brand transition-colors pointer-events-none" size={18} />
-                    <input type="text" required value={loginId} onChange={(e) => setLoginId(e.target.value.replace(/\D/g, ''))} className="w-full pl-12 pr-5 py-3.5 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:ring-4 focus:ring-brand/5 focus:border-brand outline-none transition-all placeholder:text-secondary/60 font-medium" placeholder="מספר אישי" maxLength={7} />
+                  <CreditCard className="absolute left-4 top-3.5 text-secondary group-focus-within:text-brand transition-colors pointer-events-none" size={18} />
+                  <input type="text" required value={loginId} onChange={(e) => setLoginId(e.target.value.replace(/\D/g, ''))} className="w-full pl-12 pr-5 py-3.5 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:ring-4 focus:ring-brand/5 focus:border-brand outline-none transition-all placeholder:text-secondary/60 font-medium" placeholder="מספר אישי" maxLength={7} />
                 </div>
                 <div className="relative group">
-                    <Lock className="absolute left-4 top-3.5 text-secondary group-focus-within:text-brand transition-colors pointer-events-none" size={18} />
-                    <input type={showLoginPassword ? "text" : "password"} required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full pl-12 pr-12 py-3.5 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:ring-4 focus:ring-brand/5 focus:border-brand outline-none transition-all placeholder:text-secondary/60 font-medium" placeholder="סיסמה" />
-                    <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-4 top-3.5 text-secondary hover:text-brand transition-colors">
-                        {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+                  <Lock className="absolute left-4 top-3.5 text-secondary group-focus-within:text-brand transition-colors pointer-events-none" size={18} />
+                  <input type={showLoginPassword ? "text" : "password"} required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full pl-12 pr-12 py-3.5 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:ring-4 focus:ring-brand/5 focus:border-brand outline-none transition-all placeholder:text-secondary/60 font-medium" placeholder="סיסמה" />
+                  <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-4 top-3.5 text-secondary hover:text-brand transition-colors">
+                    {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 px-1">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   id="remember-me-checkbox"
-                  className="w-4 h-4 rounded border-subtle bg-tertiary text-brand focus:ring-brand transition-all cursor-pointer accent-brand" 
-                  checked={rememberMe} 
-                  onChange={(e) => setRememberMe(e.target.checked)} 
+                  className="w-4 h-4 rounded border-subtle bg-tertiary text-brand focus:ring-brand transition-all cursor-pointer accent-brand"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <label 
+                <label
                   htmlFor="remember-me-checkbox"
                   className="text-xs font-bold text-secondary cursor-pointer hover:text-primary transition-colors select-none"
                 >
@@ -277,27 +277,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                    <input type="text" required value={regPersonalId} onChange={(e) => setRegPersonalId(e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none transition-all placeholder:text-secondary/60 text-sm font-medium" placeholder="מ״א (7 ספרות)" maxLength={7} />
-                    <div className="relative group">
-                        <input type={showRegPassword ? "text" : "password"} required value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="w-full px-4 py-3 pr-10 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none transition-all placeholder:text-secondary/60 text-sm font-medium" placeholder="סיסמה" />
-                        <button type="button" onClick={() => setShowRegPassword(!showRegPassword)} className="absolute right-3 top-3 text-secondary hover:text-brand transition-colors">
-                            {showRegPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                    </div>
+                  <input type="text" required value={regPersonalId} onChange={(e) => setRegPersonalId(e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none transition-all placeholder:text-secondary/60 text-sm font-medium" placeholder="מ״א (7 ספרות)" maxLength={7} />
+                  <div className="relative group">
+                    <input type={showRegPassword ? "text" : "password"} required value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="w-full px-4 py-3 pr-10 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none transition-all placeholder:text-secondary/60 text-sm font-medium" placeholder="סיסמה" />
+                    <button type="button" onClick={() => setShowRegPassword(!showRegPassword)} className="absolute right-3 top-3 text-secondary hover:text-brand transition-colors">
+                      {showRegPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
                 <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none transition-all placeholder:text-secondary/60 text-sm font-medium" placeholder="שם מלא" />
                 <input type="tel" required value={newPhoneNumber} onChange={(e) => setNewPhoneNumber(e.target.value.replace(/\D/g, ''))} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none transition-all placeholder:text-secondary/60 text-sm font-medium" placeholder="טלפון נייד" maxLength={10} />
                 <div className="grid grid-cols-2 gap-4">
-                    <select required value={newBase} onChange={(e) => setNewBase(e.target.value)} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none appearance-none cursor-pointer text-sm font-medium">
-                          <option value="" disabled>בחר בסיס</option>
-                          {AVAILABLE_BASES.map(base => <option key={base} value={base}>{base}</option>)}
-                    </select>
-                    <select required value={newJobTitle} onChange={(e) => setNewJobTitle(e.target.value)} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none appearance-none cursor-pointer text-sm font-medium">
-                          <option value="" disabled>בחר תפקיד</option>
-                          {AVAILABLE_JOB_TITLES.map(title => (
-                            <option key={title} value={title}>{title}</option>
-                          ))}
-                    </select>
+                  <select required value={newBase} onChange={(e) => setNewBase(e.target.value)} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none appearance-none cursor-pointer text-sm font-medium">
+                    <option value="" disabled>בחר בסיס</option>
+                    {AVAILABLE_BASES.map(base => <option key={base} value={base}>{base}</option>)}
+                  </select>
+                  <select required value={newJobTitle} onChange={(e) => setNewJobTitle(e.target.value)} className="w-full px-4 py-3 rounded-2xl border border-subtle bg-tertiary text-primary focus:bg-surface focus:border-brand outline-none appearance-none cursor-pointer text-sm font-medium">
+                    <option value="" disabled>בחר תפקיד</option>
+                    {AVAILABLE_JOB_TITLES.map(title => (
+                      <option key={title} value={title}>{title}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <button type="submit" className="w-full bg-brand hover:bg-brand-hover text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand/20 active:scale-95 mt-4" disabled={isProcessingImage}><UserPlus size={20} />בקשת הצטרפות</button>

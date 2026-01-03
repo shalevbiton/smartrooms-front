@@ -488,6 +488,7 @@ const App: React.FC = () => {
         fallbackBackground={activeBackground || 'var(--bg-main)'}
         overlayOpacity={0}
         theme={theme}
+        isAdmin={isAdmin}
       />
 
       <Sidebar

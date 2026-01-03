@@ -15,7 +15,7 @@ interface SidebarProps {
   theme?: 'light' | 'dark';
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ 
+const Sidebar: React.FC<SidebarProps> = ({
   currentUser, currentView, onChangeView, onLogout, isOpen, onClose, notificationCount, onEditProfile, theme = 'light'
 }) => {
   const navItemClass = (view: string) => `
@@ -34,7 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
           onClick={onClose}
         />
@@ -49,17 +49,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="relative h-48 shrink-0 border-b border-subtle flex flex-col items-center justify-center bg-surface overflow-hidden">
           <div className="relative z-10 w-full h-full flex items-center justify-center p-6">
             <picture className="w-full h-full flex items-center justify-center">
-              <img 
-                src={isDark ? "/logo_dark.png" : "/logo_light.png"} 
-                alt="SmartRoom System Logo" 
-                className="h-32 w-auto object-contain system-logo transition-transform duration-300"
+              <img
+                src={isDark ? "/logo_dark.png" : "/logo_light.png"}
+                alt="SmartRoom System Logo"
+                className="h-32 w-auto object-contain system-logo transition-transform duration-300 border-2 border-black dark:border-white rounded-2xl p-2 bg-surface/30"
                 id="site-logo"
                 loading="eager"
               />
             </picture>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-4 right-4 md:hidden text-secondary hover:text-primary p-1.5 rounded-full transition-colors bg-surface/50 border border-subtle"
           >
@@ -69,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
           <div className="px-4 py-2 text-xs font-semibold text-secondary uppercase tracking-wider mb-1">תפריט</div>
-          
+
           {isAdmin ? (
             <>
               <button onClick={() => handleNavClick('calendar')} className={navItemClass('calendar')}>
