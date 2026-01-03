@@ -7,7 +7,7 @@ import AdminDashboard from './components/AdminDashboard';
 import MyBookings from './components/MyBookings';
 import LoginScreen from './components/LoginScreen';
 import DateSelectionCalendar from './components/DateSelectionCalendar';
-import UserProfileModal from './components/UserProfileModal'; 
+import UserProfileModal from './components/UserProfileModal';
 import RoomManagement from './components/RoomManagement';
 import UserManagement from './components/UserManagement';
 import EditRoomModal from './components/EditRoomModal';
@@ -23,7 +23,7 @@ const App: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window === 'undefined') return 'light';
     const saved = localStorage.getItem('smartroom_theme');
@@ -38,7 +38,7 @@ const App: React.FC = () => {
     const body = document.body;
     root.setAttribute('data-theme', theme);
     localStorage.setItem('smartroom_theme', theme);
-    
+
     if (theme === 'dark') {
       root.classList.add('dark');
       body.classList.add('dark-mode');
@@ -62,7 +62,7 @@ const App: React.FC = () => {
             if (new Date().getTime() < expires) {
               setCurrentUser(user);
               setIsLoading(false);
-              return; 
+              return;
             } else {
               localStorage.removeItem('smartroom_auth_session');
             }
@@ -88,14 +88,14 @@ const App: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     restoreSession();
   }, []);
 
   const [systemBackground] = useState<string>(() => {
     return localStorage.getItem('smartroom_bg') || 'https://upload.wikimedia.org/wikipedia/commons/1/18/Yamar_metzach.png';
   });
-  
+
   const [currentView, setCurrentView] = useState('calendar');
   const [selectedContextDate, setSelectedContextDate] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,7 +104,7 @@ const App: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
   const [roomToEdit, setRoomToEdit] = useState<Room | null>(null);
-  const [globalNotification, setGlobalNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [globalNotification, setGlobalNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [safetyModal, setSafetyModal] = useState<{
@@ -120,7 +120,7 @@ const App: React.FC = () => {
     description: '',
     confirmString: '',
     confirmLabel: '',
-    onConfirm: () => {}
+    onConfirm: () => { }
   });
 
   const [undoAction, setUndoAction] = useState<{
@@ -141,13 +141,13 @@ const App: React.FC = () => {
           bookingsApi.getAll(),
           usersApi.getAll(),
         ]);
-        
+
         setRooms(roomsData);
         setBookings(bookingsData);
         setUsers(usersData);
-        
+
         if (currentUser) {
-          const updatedMe = usersData.find(u => u.id === currentUser.id);
+          const updatedMe = (usersData as User[]).find((u: User) => u.id === currentUser.id);
           if (updatedMe) {
             setCurrentUser(updatedMe);
           }
@@ -199,13 +199,13 @@ const App: React.FC = () => {
 
   const handleLogin = (user: User, rememberMe: boolean) => {
     if (rememberMe) {
-        const EXPIRE_30_DAYS = 30 * 24 * 60 * 60 * 1000;
-        const expires = new Date().getTime() + EXPIRE_30_DAYS;
-        localStorage.setItem('smartroom_auth_session', JSON.stringify({ user, expires }));
-        sessionStorage.removeItem('smartroom_user');
+      const EXPIRE_30_DAYS = 30 * 24 * 60 * 60 * 1000;
+      const expires = new Date().getTime() + EXPIRE_30_DAYS;
+      localStorage.setItem('smartroom_auth_session', JSON.stringify({ user, expires }));
+      sessionStorage.removeItem('smartroom_user');
     } else {
-        sessionStorage.setItem('smartroom_user', JSON.stringify(user));
-        localStorage.removeItem('smartroom_auth_session');
+      sessionStorage.setItem('smartroom_user', JSON.stringify(user));
+      localStorage.removeItem('smartroom_auth_session');
     }
     setCurrentUser(user);
     setCurrentView(user.role === 'ADMIN' ? 'admin' : 'calendar');
@@ -262,7 +262,7 @@ const App: React.FC = () => {
     const requestedEnd = new Date(endISO).getTime();
     const now = new Date().getTime();
 
-    if (requestedStart < now - (5 * 60 * 1000)) { 
+    if (requestedStart < now - (5 * 60 * 1000)) {
       setGlobalNotification({ type: 'error', message: 'לא ניתן לבצע הזמנה לשעה שכבר עברה.' });
       return;
     }
@@ -296,7 +296,7 @@ const App: React.FC = () => {
       isRecorded: data.isRecorded,
       phoneNumber: data.phoneNumber
     };
-    
+
     try {
       await bookingsApi.create(newBooking);
       setCurrentView('my-bookings');
@@ -311,10 +311,10 @@ const App: React.FC = () => {
       if (type === 'DELETE') {
         const booking = bookings.find(b => b.id === id);
         const timer = setTimeout(async () => {
-           await bookingsApi.delete(id);
-           setUndoAction(null);
+          await bookingsApi.delete(id);
+          setUndoAction(null);
         }, 6000);
-        
+
         setUndoAction({
           id,
           message: `ההזמנה של "${booking?.title}" הוסרה.`,
@@ -326,8 +326,8 @@ const App: React.FC = () => {
       } else if (type === 'CHECKOUT') {
         const booking = bookings.find(b => b.id === id);
         if (booking) {
-            setActiveCheckoutBooking(booking);
-            setIsCheckoutModalOpen(true);
+          setActiveCheckoutBooking(booking);
+          setIsCheckoutModalOpen(true);
         }
       }
     } catch (e) {
@@ -344,21 +344,21 @@ const App: React.FC = () => {
   };
 
   const handleFinishCheckout = async (videoUrl: string) => {
-      if (!activeCheckoutBooking) return;
-      try {
-          await bookingsApi.update(activeCheckoutBooking.id, {
-              status: 'COMPLETED',
-              checkoutVideoUrl: videoUrl
-          });
-          
-          setGlobalNotification({ type: 'success', message: 'השימוש בחדר הסתיים בהצלחה.' });
-          setActiveCheckoutBooking(null);
-          setIsCheckoutModalOpen(false);
-      } catch (e) {
-          console.error("API update failed:", e);
-          setGlobalNotification({ type: 'error', message: 'שגיאה בעדכון בסיס הנתונים. נא לנסות שוב.' });
-          throw e; 
-      }
+    if (!activeCheckoutBooking) return;
+    try {
+      await bookingsApi.update(activeCheckoutBooking.id, {
+        status: 'COMPLETED',
+        checkoutVideoUrl: videoUrl
+      });
+
+      setGlobalNotification({ type: 'success', message: 'השימוש בחדר הסתיים בהצלחה.' });
+      setActiveCheckoutBooking(null);
+      setIsCheckoutModalOpen(false);
+    } catch (e) {
+      console.error("API update failed:", e);
+      setGlobalNotification({ type: 'error', message: 'שגיאה בעדכון בסיס הנתונים. נא לנסות שוב.' });
+      throw e;
+    }
   };
 
   const handleRoomSave = async (data: Partial<Room>) => {
@@ -444,8 +444,8 @@ const App: React.FC = () => {
     }
   };
 
-  const activeBackground = (currentUser?.role === 'ADMIN' && currentUser.customBackground) 
-    ? currentUser.customBackground 
+  const activeBackground = (currentUser?.role === 'ADMIN' && currentUser.customBackground)
+    ? currentUser.customBackground
     : systemBackground;
 
   if (isLoading) {
@@ -461,11 +461,11 @@ const App: React.FC = () => {
 
   if (!currentUser) {
     return (
-      <LoginScreen 
-        existingUsers={users} 
-        onLogin={handleLogin} 
-        onRegister={handleRegister} 
-        onRemoveUser={handleDeleteUser} 
+      <LoginScreen
+        existingUsers={users}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onRemoveUser={handleDeleteUser}
         backgroundImage={activeBackground}
         theme={theme}
       />
@@ -484,58 +484,58 @@ const App: React.FC = () => {
   return (
     <div className="flex min-h-screen relative font-sans antialiased overflow-y-auto" dir="rtl">
       {/* Video Background Component */}
-      <VideoBackground 
+      <VideoBackground
         fallbackBackground={activeBackground || 'var(--bg-main)'}
         overlayOpacity={0.4}
       />
-      
+
       {/* Additional overlay for content readability */}
       <div className="absolute inset-0 bg-main/85 backdrop-blur-[4px] z-0 pointer-events-none transition-colors duration-300"></div>
-      
-      <Sidebar 
-        currentUser={currentUser} 
-        currentView={currentView} 
-        onChangeView={setCurrentView} 
-        onLogout={handleLogout} 
-        isOpen={isMobileMenuOpen} 
-        onClose={() => setIsMobileMenuOpen(false)} 
-        notificationCount={bookings.filter(b => b.status === 'PENDING').length + users.filter(u => u.status === 'PENDING').length} 
+
+      <Sidebar
+        currentUser={currentUser}
+        currentView={currentView}
+        onChangeView={setCurrentView}
+        onLogout={handleLogout}
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        notificationCount={bookings.filter(b => b.status === 'PENDING').length + users.filter(u => u.status === 'PENDING').length}
         onEditProfile={() => setIsProfileModalOpen(true)}
         theme={theme}
       />
-      
+
       <main className="flex-1 md:mr-64 p-6 md:p-10 w-full relative z-10 transition-colors duration-300 overflow-y-auto custom-scrollbar">
         {globalNotification && (
           <div className="fixed top-6 left-6 z-50 animate-in slide-in-from-left-10 fade-in duration-500">
-             <div className={`bg-surface/90 backdrop-blur-md border-r-4 shadow-2xl rounded-xl p-5 flex items-center gap-4 ${globalNotification.type === 'success' ? 'border-emerald-500' : 'border-red-500'}`}>
-                <div className={`p-2 rounded-full ${globalNotification.type === 'success' ? 'bg-emerald-100/20 text-emerald-600' : 'bg-red-100/20 text-red-600'}`}>
-                  {globalNotification.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-primary leading-none">מערכת</p>
-                  <p className="text-sm text-secondary mt-1">{globalNotification.message}</p>
-                </div>
-             </div>
+            <div className={`bg-surface/90 backdrop-blur-md border-r-4 shadow-2xl rounded-xl p-5 flex items-center gap-4 ${globalNotification.type === 'success' ? 'border-emerald-500' : 'border-red-500'}`}>
+              <div className={`p-2 rounded-full ${globalNotification.type === 'success' ? 'bg-emerald-100/20 text-emerald-600' : 'bg-red-100/20 text-red-600'}`}>
+                {globalNotification.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-primary leading-none">מערכת</p>
+                <p className="text-sm text-secondary mt-1">{globalNotification.message}</p>
+              </div>
+            </div>
           </div>
         )}
 
         {undoAction && (
-          <UndoToast 
-            message={undoAction.message} 
-            onUndo={handleCancelDelete} 
+          <UndoToast
+            message={undoAction.message}
+            onUndo={handleCancelDelete}
           />
         )}
 
         <header className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-4">
-             <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2.5 text-secondary bg-surface/80 rounded-xl shadow-sm border border-subtle"><Menu size={24} /></button>
-             <div>
-                <h1 className="text-3xl font-extrabold text-primary tracking-tight">SmartRoom</h1>
-                <p className="text-secondary font-medium">ברוך הבא, {currentUser.name.split(' ')[0]}</p>
-             </div>
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2.5 text-secondary bg-surface/80 rounded-xl shadow-sm border border-subtle"><Menu size={24} /></button>
+            <div>
+              <h1 className="text-3xl font-extrabold text-primary tracking-tight">SmartRoom</h1>
+              <p className="text-secondary font-medium">ברוך הבא, {currentUser.name.split(' ')[0]}</p>
+            </div>
           </div>
-          <button 
-            onClick={toggleTheme} 
+          <button
+            onClick={toggleTheme}
             className="p-3 bg-surface border border-subtle rounded-2xl text-secondary hover:text-brand transition-all shadow-sm active:scale-95"
             title={theme === 'light' ? 'עבור למצב כהה' : 'עבור למצב בהיר'}
           >
@@ -547,36 +547,36 @@ const App: React.FC = () => {
           {currentView === 'calendar' && (
             <DateSelectionCalendar onSelectDate={handleDateSelection} rooms={rooms} bookings={bookings} />
           )}
-          
+
           {currentView === 'rooms' && (
             <div className="space-y-8 animate-in fade-in duration-500">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface/50 p-4 rounded-2xl border border-subtle backdrop-blur-sm">
-                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-brand/10 text-brand rounded-xl">
-                       <CalendarIcon size={20} />
-                    </div>
-                    <div>
-                       <h2 className="text-lg font-bold text-primary">בחר חדר להזמנה</h2>
-                       <p className="text-xs text-secondary font-medium">{formattedContextDate || 'בחר תאריך מהיומן'}</p>
-                    </div>
-                 </div>
-                 <button 
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-brand/10 text-brand rounded-xl">
+                    <CalendarIcon size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-primary">בחר חדר להזמנה</h2>
+                    <p className="text-xs text-secondary font-medium">{formattedContextDate || 'בחר תאריך מהיומן'}</p>
+                  </div>
+                </div>
+                <button
                   onClick={() => setCurrentView('calendar')}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-brand hover:bg-brand/10 rounded-xl transition-all"
-                 >
-                   <ArrowLeft size={16} /> שינוי תאריך
-                 </button>
+                >
+                  <ArrowLeft size={16} /> שינוי תאריך
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                 {rooms.map(room => (
-                  <RoomCard 
-                    key={room.id} 
-                    room={room} 
-                    onBook={handleOpenBooking} 
-                    isAdmin={isAdmin} 
-                    bookings={visibleBookings} 
-                    selectedDate={selectedContextDate} 
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    onBook={handleOpenBooking}
+                    isAdmin={isAdmin}
+                    bookings={visibleBookings}
+                    selectedDate={selectedContextDate}
                     currentUser={currentUser}
                     onAction={handleBookingAction}
                     onEdit={(room) => { setRoomToEdit(room); setIsEditRoomModalOpen(true); }}
@@ -605,28 +605,28 @@ const App: React.FC = () => {
           )}
 
           {currentView === 'my-bookings' && (
-            <MyBookings 
-              bookings={visibleBookings} 
-              rooms={rooms} 
-              currentUserId={currentUser.id} 
-              isAdmin={isAdmin} 
+            <MyBookings
+              bookings={visibleBookings}
+              rooms={rooms}
+              currentUserId={currentUser.id}
+              isAdmin={isAdmin}
               onAction={handleBookingAction}
               onBookRoom={handleOpenBooking}
             />
           )}
 
           {currentView === 'admin' && (
-            <AdminDashboard 
-              bookings={visibleBookings} 
-              rooms={rooms} 
-              users={users} 
+            <AdminDashboard
+              bookings={visibleBookings}
+              rooms={rooms}
+              users={users}
               onApprove={async (id) => {
                 await bookingsApi.update(id, { status: 'APPROVED' });
-              }} 
+              }}
               onReject={async (id) => {
                 await bookingsApi.update(id, { status: 'REJECTED' });
-              }} 
-              onUserApprove={handleUserApprove} 
+              }}
+              onUserApprove={handleUserApprove}
               onUserReject={handleUserReject}
               onUpdateBackground={handleUpdateBackground}
               currentBackground={activeBackground}
@@ -634,37 +634,37 @@ const App: React.FC = () => {
           )}
 
           {currentView === 'manage-rooms' && (
-            <RoomManagement 
-              rooms={rooms} 
-              onEdit={(room) => { setRoomToEdit(room); setIsEditRoomModalOpen(true); }} 
+            <RoomManagement
+              rooms={rooms}
+              onEdit={(room) => { setRoomToEdit(room); setIsEditRoomModalOpen(true); }}
               onDelete={(room) => {
                 setSafetyModal({
-                    isOpen: true,
-                    title: 'מחיקת חדר מהמערכת',
-                    description: `אתה עומד למחוק את "${room.name}". כל ההזמנות המשויכות לחדר זה יבוטלו.`,
-                    confirmString: room.name,
-                    confirmLabel: 'מחק חדר',
-                    onConfirm: async () => {
-                      try {
-                        await roomsApi.delete(room.id);
-                        setGlobalNotification({ type: 'success', message: 'החדר נמחקה.' });
-                      } catch (e) {
-                        setGlobalNotification({ type: 'error', message: 'מחיקת החדר נכשלה.' });
-                      }
-                      setSafetyModal(prev => ({ ...prev, isOpen: false }));
+                  isOpen: true,
+                  title: 'מחיקת חדר מהמערכת',
+                  description: `אתה עומד למחוק את "${room.name}". כל ההזמנות המשויכות לחדר זה יבוטלו.`,
+                  confirmString: room.name,
+                  confirmLabel: 'מחק חדר',
+                  onConfirm: async () => {
+                    try {
+                      await roomsApi.delete(room.id);
+                      setGlobalNotification({ type: 'success', message: 'החדר נמחקה.' });
+                    } catch (e) {
+                      setGlobalNotification({ type: 'error', message: 'מחיקת החדר נכשלה.' });
                     }
-                  });
-              }} 
-              onAdd={() => { setRoomToEdit(null); setIsEditRoomModalOpen(true); }} 
+                    setSafetyModal(prev => ({ ...prev, isOpen: false }));
+                  }
+                });
+              }}
+              onAdd={() => { setRoomToEdit(null); setIsEditRoomModalOpen(true); }}
             />
           )}
 
           {currentView === 'manage-accounts' && (
-            <UserManagement 
-              users={users} 
-              currentUserId={currentUser.id} 
-              onDeleteUser={handleDeleteUser} 
-              onPromoteUser={handlePromoteUser} 
+            <UserManagement
+              users={users}
+              currentUserId={currentUser.id}
+              onDeleteUser={handleDeleteUser}
+              onPromoteUser={handlePromoteUser}
               onRevokeAdmin={handleRevokeAdmin}
               onUserApprove={handleUserApprove}
               onUserReject={handleUserReject}
@@ -677,38 +677,38 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      <BookingModal 
-        room={selectedRoom} 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSubmit={handleCreateBooking} 
+      <BookingModal
+        room={selectedRoom}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateBooking}
         selectedDate={selectedContextDate}
         allBookings={bookings}
         prefilledStartTime={prefilledTime}
       />
-      
+
       {isProfileModalOpen && <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} currentUser={currentUser} onSave={handleUpdateProfile} />}
-      
+
       {isEditRoomModalOpen && (
-        <EditRoomModal 
-          isOpen={isEditRoomModalOpen} 
-          onClose={() => setIsEditRoomModalOpen(false)} 
-          room={roomToEdit} 
+        <EditRoomModal
+          isOpen={isEditRoomModalOpen}
+          onClose={() => setIsEditRoomModalOpen(false)}
+          room={roomToEdit}
           onSave={handleRoomSave}
           existingRooms={rooms}
         />
       )}
 
       {isCheckoutModalOpen && (
-        <CheckoutModal 
-            isOpen={isCheckoutModalOpen} 
-            onClose={() => { setIsCheckoutModalOpen(false); setActiveCheckoutBooking(null); }}
-            onConfirm={handleFinishCheckout}
-            roomName={rooms.find(r => r.id === activeCheckoutBooking?.roomId)?.name || 'החדר'}
+        <CheckoutModal
+          isOpen={isCheckoutModalOpen}
+          onClose={() => { setIsCheckoutModalOpen(false); setActiveCheckoutBooking(null); }}
+          onConfirm={handleFinishCheckout}
+          roomName={rooms.find(r => r.id === activeCheckoutBooking?.roomId)?.name || 'החדר'}
         />
       )}
 
-      <HighFrictionModal 
+      <HighFrictionModal
         {...safetyModal}
         onClose={() => setSafetyModal(prev => ({ ...prev, isOpen: false }))}
       />
