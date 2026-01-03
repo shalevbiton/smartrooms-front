@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Upload, X, Video } from 'lucide-react';
 
 interface VideoBackgroundProps {
   fallbackBackground?: string;
@@ -6,32 +7,23 @@ interface VideoBackgroundProps {
 }
 
 export default function VideoBackground({ fallbackBackground = 'var(--bg-main)', overlayOpacity = 0.4 }: VideoBackgroundProps) {
-  // 1. State to hold the video URL (if uploaded)
   const [videoFile, setVideoFile] = useState<string | null>(() => {
-    // Persist across reloads if possible, though blob URLs are session-local.
-    // Ideally we would re-create it, but for now we follow the simple pattern
-    // and just try to check if we have a saved state or init null.
     return localStorage.getItem('smartroom_video_bg');
   });
 
+  const [isHovered, setIsHovered] = useState(false);
+
   useEffect(() => {
-    // Validate stored URL on mount (simple check)
     const stored = localStorage.getItem('smartroom_video_bg');
     if (stored && stored.startsWith('blob:')) {
-      // Blob URLs expire on reload, so we effectively clear it if it's a blob
-      // Unless we re-upload. For persistent video, we'd need IndexedDB or server upload.
-      // For this simple version, we start null if it was a blob.
       setVideoFile(null);
       localStorage.removeItem('smartroom_video_bg');
     }
   }, []);
 
-  // Function triggered when a file is selected
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-
     if (file) {
-      // Create a temporary local URL for the file to display it immediately
       const url = URL.createObjectURL(file);
       setVideoFile(url);
       localStorage.setItem('smartroom_video_bg', url);
@@ -46,11 +38,7 @@ export default function VideoBackground({ fallbackBackground = 'var(--bg-main)',
   return (
     <>
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
-
-        {/* --- Background Area --- */}
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
-
-          {/* The Condition: If videoFile exists, show video. Otherwise, show image/fallback. */}
           {videoFile ? (
             <video
               src={videoFile}
@@ -71,54 +59,94 @@ export default function VideoBackground({ fallbackBackground = 'var(--bg-main)',
               }}
             />
           )}
-
-          {/* Overlay */}
           <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}></div>
         </div>
       </div>
 
-      {/* --- Upload Controls --- */}
-      {/* Positioned at bottom-left, moved OUTSIDE the z-index -1 container to ensure clickability */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        left: '20px',
-        padding: '15px',
-        background: 'rgba(255,255,255,0.9)',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-        zIndex: 99999, // Ensure it's on top of everything
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-      }}>
-        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: '#333' }}>העלאת וידאו רקע</h3>
+      {/* Styled Upload Controls */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '30px',
+          left: '30px',
+          zIndex: 99999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '12px',
+          fontFamily: 'sans-serif',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <button
+          onClick={() => document.getElementById('video-upload')?.click()}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 20px',
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '24px',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 600,
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            width: isHovered || !videoFile ? 'auto' : '50px',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            justifyContent: isHovered || !videoFile ? 'flex-start' : 'center'
+          }}
+          title={!isHovered && videoFile ? "העלאת רקע" : ""}
+        >
+          <Upload size={20} />
+          {(isHovered || !videoFile) && <span>{videoFile ? 'החלף וידאו' : 'העלה וידאו רקע'}</span>}
+        </button>
+
         <input
+          id="video-upload"
           type="file"
           accept="video/*"
           onChange={handleUpload}
-          style={{ fontSize: '12px' }}
+          style={{ display: 'none' }}
         />
 
-        {/* Optional Reset Button */}
         {videoFile && (
           <button
             onClick={handleRemove}
             style={{
-              marginTop: '5px',
-              padding: '5px 10px',
-              background: '#ff4d4f',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '10px 18px',
+              backgroundColor: 'rgba(239, 68, 68, 0.9)',
               color: 'white',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '20px',
               cursor: 'pointer',
-              fontSize: '12px'
-            }}>
-            חזור לרקע רגיל
+              fontSize: '13px',
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+              transition: 'all 0.3s ease',
+              opacity: isHovered ? 1 : 0,
+              transform: isHovered ? 'translateY(0)' : 'translateY(10px)',
+              pointerEvents: isHovered ? 'auto' : 'none',
+              visibility: isHovered ? 'visible' : 'hidden',
+              height: isHovered ? 'auto' : 0,
+              overflow: 'hidden',
+              margin: isHovered ? '0' : '-10px 0 0 0'
+            }}
+          >
+            <X size={16} />
+            <span>חזור לרקע רגיל</span>
           </button>
         )}
       </div>
     </>
   );
 }
-
