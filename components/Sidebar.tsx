@@ -41,18 +41,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <div className={`
-        fixed top-0 right-0 z-50 h-screen w-64 bg-surface border-l border-subtle shadow-xl md:shadow-none
-        transition-transform duration-300 ease-in-out flex flex-col
+        fixed top-0 right-0 z-50 h-[100dvh] w-64 bg-surface border-l border-subtle shadow-xl md:shadow-none
+        transition-transform duration-300 ease-in-out flex flex-col overflow-hidden
         ${isOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
       `}>
         {/* BRANDING HEADER */}
-        <div className="relative h-48 shrink-0 border-b border-subtle flex flex-col items-center justify-center bg-surface overflow-hidden">
+        <div className="relative h-32 md:h-48 shrink-0 border-b border-subtle flex flex-col items-center justify-center bg-surface overflow-hidden">
           <div className="relative z-10 w-full h-full flex items-center justify-center p-6">
             <picture className="w-full h-full flex items-center justify-center">
               <img
                 src={isDark ? "/logo_dark.png" : "/logo_light.png"}
                 alt="SmartRoom System Logo"
-                className="h-32 w-auto object-contain system-logo transition-transform duration-300 border-2 border-black dark:border-white rounded-2xl p-2 bg-surface/30"
+                className="h-20 md:h-32 w-auto object-contain system-logo transition-transform duration-300 border-2 border-black dark:border-white rounded-2xl p-2 bg-surface/30"
                 id="site-logo"
                 loading="eager"
               />
