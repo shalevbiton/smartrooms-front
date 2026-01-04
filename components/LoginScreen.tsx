@@ -13,12 +13,8 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  CalendarPlus,
-  Fingerprint,
-  ScanFace
+  CalendarPlus
 } from 'lucide-react';
-import { authApi } from '../services/api';
-import { startAuthentication } from '@simplewebauthn/browser';
 
 interface LoginScreenProps {
   existingUsers: User[];
@@ -80,29 +76,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
     setRememberMe(true);
     setActiveTab('login');
     setNotification({ type: 'success', message: `ברוך שובך, ${user.name}. אנא הזן את הסיסמה שלך.` });
-  };
-
-  const handleLoginPasskey = async () => {
-    if (!loginId) {
-      setNotification({ type: 'error', message: 'אנא הזן מספר אישי תחילה.' });
-      return;
-    }
-
-    try {
-      setNotification(null);
-      const options = await authApi.getLoginOptions(loginId);
-      const verificationResp = await startAuthentication({ optionsJSON: options });
-      const verificationJSON = await authApi.verifyLogin(loginId, verificationResp);
-
-      if (verificationJSON && verificationJSON.verified) {
-        onLogin(verificationJSON.user, rememberMe);
-      } else {
-        setNotification({ type: 'error', message: 'אימות נכשל.' });
-      }
-    } catch (e: any) {
-      console.error(e);
-      setNotification({ type: 'error', message: e.message || 'שגיאה בכניסה עם Passkey.' });
-    }
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -311,14 +284,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
                     </button>
                   </div>
 
-                  <div className="flex gap-2 mt-4">
-                    <button type="submit" className="flex-1 bg-brand hover:bg-brand-hover text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand/20 hover:-translate-y-1 active:scale-95"><LogIn size={20} />התחבר</button>
-                    <button type="button" onClick={handleLoginPasskey} className="flex-1 bg-surface border-2 border-brand text-brand hover:bg-brand hover:text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-1 active:scale-95" title="כניסה עם ביומטרי / Passkey">
-                      <Fingerprint size={24} />
-                      <span className="text-sm">/</span>
-                      <ScanFace size={24} />
-                    </button>
-                  </div>
+                  <button type="submit" className="w-full bg-brand hover:bg-brand-hover text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand/20 hover:-translate-y-1 active:scale-95 mt-4"><LogIn size={20} />התחבר</button>
                   <p className="text-xs font-bold text-brand text-center mt-4">מחלק הסייבר Created by</p>
                 </form>
               ) : (
