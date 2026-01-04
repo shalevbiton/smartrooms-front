@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Save, Camera, User, Phone, MapPin, Briefcase, Loader2, AlertCircle, ChevronDown, Fingerprint } from 'lucide-react';
+import { X, Save, Camera, User, Phone, MapPin, Briefcase, Loader2, AlertCircle, ChevronDown, Fingerprint, ScanFace } from 'lucide-react';
 import { User as UserType } from '../types';
 import { authApi } from '../services/api';
 import { startRegistration } from '@simplewebauthn/browser';
@@ -281,7 +281,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, cu
               className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all border border-white/10"
             >
               <Fingerprint size={20} className="text-brand" />
-              רשום מפתח גישה (Passkey)
+              <span className="text-brand">/</span>
+              <ScanFace size={20} className="text-brand" />
+              רשום ביומטרי (Passkey)
             </button>
             <p className="text-[10px] text-center text-slate-500 mt-2">מאפשר כניסה מהירה ומאובטחת ללא סיסמה</p>
           </div>

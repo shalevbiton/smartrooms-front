@@ -14,7 +14,8 @@ import {
   EyeOff,
   Loader2,
   CalendarPlus,
-  Fingerprint
+  Fingerprint,
+  ScanFace
 } from 'lucide-react';
 import { authApi } from '../services/api';
 import { startAuthentication } from '@simplewebauthn/browser';
@@ -314,6 +315,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ existingUsers, onLogin, onReg
                     <button type="submit" className="flex-1 bg-brand hover:bg-brand-hover text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand/20 hover:-translate-y-1 active:scale-95"><LogIn size={20} />התחבר</button>
                     <button type="button" onClick={handleLoginPasskey} className="flex-1 bg-surface border-2 border-brand text-brand hover:bg-brand hover:text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg hover:-translate-y-1 active:scale-95" title="כניסה עם ביומטרי / Passkey">
                       <Fingerprint size={24} />
+                      <span className="text-sm">/</span>
+                      <ScanFace size={24} />
                     </button>
                   </div>
                   <p className="text-xs font-bold text-brand text-center mt-4">מחלק הסייבר Created by</p>
