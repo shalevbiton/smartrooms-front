@@ -107,6 +107,10 @@ const App: React.FC = () => {
   const [globalNotification, setGlobalNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [videoBgSrc, setVideoBgSrc] = useState<string | null>(() => {
+    return localStorage.getItem('smartroom_video_bg');
+  });
+
   const [safetyModal, setSafetyModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -221,6 +225,18 @@ const App: React.FC = () => {
       console.error(e);
       setGlobalNotification({ type: 'error', message: 'שגיאה בעדכון הרקע.' });
     }
+  };
+
+  const handleUpdateVideo = (url: string) => {
+    setVideoBgSrc(url);
+    localStorage.setItem('smartroom_video_bg', url);
+    setGlobalNotification({ type: 'success', message: 'רקע הווידאו עודכן בהצלחה.' });
+  };
+
+  const handleRemoveVideo = () => {
+    setVideoBgSrc(null);
+    localStorage.removeItem('smartroom_video_bg');
+    setGlobalNotification({ type: 'success', message: 'רקע הווידאו הוסר.' });
   };
 
   const handleLogout = () => {
@@ -485,10 +501,9 @@ const App: React.FC = () => {
     <div className="flex min-h-screen relative font-sans antialiased overflow-y-auto" dir="rtl">
       {/* Video Background Component */}
       <VideoBackground
+        videoSrc={videoBgSrc}
         fallbackBackground={activeBackground || 'var(--bg-main)'}
         overlayOpacity={0}
-        theme={theme}
-        isAdmin={isAdmin}
       />
 
       <Sidebar
@@ -629,6 +644,8 @@ const App: React.FC = () => {
               onUserReject={handleUserReject}
               onUpdateBackground={handleUpdateBackground}
               currentBackground={activeBackground}
+              onUpdateVideo={handleUpdateVideo}
+              onRemoveVideo={handleRemoveVideo}
             />
           )}
 
