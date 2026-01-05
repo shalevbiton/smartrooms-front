@@ -225,6 +225,18 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                       </div>
 
                       <div className="flex gap-2">
+                        {(booking.status === 'CANCELLED' || booking.status === 'REJECTED') && onAction && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAction(booking.id, 'DELETE');
+                            }}
+                            className="p-2.5 text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                            title="מחק מההיסטוריה"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        )}
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : booking.id)}
                           className="p-2.5 text-secondary hover:bg-tertiary rounded-xl transition-all"
@@ -292,6 +304,14 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                                 className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
                               >
                                 מחק הזמנה
+                              </button>
+                            )}
+                            {booking.status === 'CANCELLED' && onAction && (
+                              <button
+                                onClick={() => onAction(booking.id, 'DELETE')}
+                                className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
+                              >
+                                מחק מההיסטוריה
                               </button>
                             )}
                           </div>
