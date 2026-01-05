@@ -142,46 +142,42 @@ const App: React.FC = () => {
     stateRef.current = { rooms: rooms as any, bookings: bookings as any, users: users as any };
   }, [rooms, bookings, users]);
 
-  useEffect(() => {
-    // Load all data
-    const loadData = async () => {
-      try {
-        const [roomsData, bookingsData, usersData] = await Promise.all([
-          roomsApi.getAll(),
-          bookingsApi.getAll(),
-          usersApi.getAll(),
-        ]);
+  const refreshData = useCallback(async () => {
+    try {
+      const [roomsData, bookingsData, usersData] = await Promise.all([
+        roomsApi.getAll(),
+        bookingsApi.getAll(),
+        usersApi.getAll(),
+      ]);
 
-        // Helper to check if data changed
-        const hasChanged = (prev: any, current: any) => JSON.stringify(prev) !== JSON.stringify(current);
+      // Helper to check if data changed
+      const hasChanged = (prev: any, current: any) => JSON.stringify(prev) !== JSON.stringify(current);
 
-        if (hasChanged(stateRef.current.rooms, roomsData)) setRooms(roomsData);
-        if (hasChanged(stateRef.current.bookings, bookingsData)) setBookings(bookingsData);
-        if (hasChanged(stateRef.current.users, usersData)) setUsers(usersData);
+      if (hasChanged(stateRef.current.rooms, roomsData)) setRooms(roomsData);
+      if (hasChanged(stateRef.current.bookings, bookingsData)) setBookings(bookingsData);
+      if (hasChanged(stateRef.current.users, usersData)) setUsers(usersData);
 
-        if (currentUser) {
-          const updatedMe = (usersData as User[]).find((u: User) => u.id === currentUser.id);
-          if (updatedMe && hasChanged(currentUser, updatedMe)) {
-            setCurrentUser(updatedMe);
-          }
-        }
-        setIsLoading(false);
-      } catch (error) {
-        console.error("API error:", error);
-        // Only show error if it's the first load, otherwise silent fail to avoid spamming the user
-        if (isLoading) {
-          setGlobalNotification({ type: 'error', message: 'שגיאת תקשורת עם בסיס הנתונים. נסה לרענן.' });
-          setIsLoading(false);
+      if (currentUser) {
+        const updatedMe = (usersData as User[]).find((u: User) => u.id === currentUser.id);
+        if (updatedMe && hasChanged(currentUser, updatedMe)) {
+          setCurrentUser(updatedMe);
         }
       }
-    };
+      setIsLoading(false);
+    } catch (error) {
+      console.error("API error:", error);
+      if (isLoading) {
+        setGlobalNotification({ type: 'error', message: 'שגיאת תקשורת עם בסיס הנתונים. נסה לרענן.' });
+        setIsLoading(false);
+      }
+    }
+  }, [currentUser, isLoading]);
 
-    loadData();
-
-    // Poll for updates every 30 seconds
-    const interval = setInterval(loadData, 30000);
+  useEffect(() => {
+    refreshData();
+    const interval = setInterval(refreshData, 30000);
     return () => clearInterval(interval);
-  }, [currentUser?.id]);
+  }, [refreshData]);
 
   useEffect(() => {
     if (globalNotification) {
@@ -207,6 +203,7 @@ const App: React.FC = () => {
       };
       await usersApi.create(newUser);
       setGlobalNotification({ type: 'success', message: 'בקשת ההרשמה נשלחה וממתינה לאישור מנהל.' });
+      refreshData();
     } catch (e) {
       console.error(e);
       setGlobalNotification({ type: 'error', message: 'ההרשמה נכשלה. נא לנסות שוב.' });
@@ -233,6 +230,7 @@ const App: React.FC = () => {
     try {
       await usersApi.update(currentUser.id, { customBackground: url });
       setGlobalNotification({ type: 'success', message: 'הרקע האישי עודכן בהצלחה.' });
+      refreshData();
     } catch (e) {
       console.error(e);
       setGlobalNotification({ type: 'error', message: 'שגיאה בעדכון הרקע.' });
@@ -264,6 +262,7 @@ const App: React.FC = () => {
     try {
       await usersApi.update(currentUser.id, data);
       setGlobalNotification({ type: 'success', message: 'הפרופיל עודכן בהצלחה.' });
+      refreshData();
     } catch (e) {
       console.error(e);
       setGlobalNotification({ type: 'error', message: 'עדכון הפרופיל נכשל.' });
@@ -329,6 +328,7 @@ const App: React.FC = () => {
       await bookingsApi.create(newBooking);
       setCurrentView('my-bookings');
       setGlobalNotification({ type: 'success', message: 'בקשת ההזמנה נשלחה בהצלחה!' });
+      refreshData();
     } catch (e) {
       setGlobalNotification({ type: 'error', message: 'שגיאה ביצירת ההזמנה.' });
     }
@@ -341,6 +341,7 @@ const App: React.FC = () => {
         const timer = setTimeout(async () => {
           await bookingsApi.delete(id);
           setUndoAction(null);
+          refreshData();
         }, 6000);
 
         setUndoAction({
@@ -351,6 +352,7 @@ const App: React.FC = () => {
       } else if (type === 'CANCEL') {
         await bookingsApi.update(id, { status: 'CANCELLED' });
         setGlobalNotification({ type: 'success', message: 'ההזמנה בוטלה.' });
+        refreshData();
       } else if (type === 'CHECKOUT') {
         const booking = bookings.find(b => b.id === id);
         if (booking) {
@@ -382,6 +384,7 @@ const App: React.FC = () => {
       setGlobalNotification({ type: 'success', message: 'השימוש בחדר הסתיים בהצלחה.' });
       setActiveCheckoutBooking(null);
       setIsCheckoutModalOpen(false);
+      refreshData();
     } catch (e) {
       console.error("API update failed:", e);
       setGlobalNotification({ type: 'error', message: 'שגיאה בעדכון בסיס הנתונים. נא לנסות שוב.' });
@@ -407,6 +410,7 @@ const App: React.FC = () => {
         await roomsApi.create(newRoom);
         setGlobalNotification({ type: 'success', message: 'חדר חדש נוסף למערכת.' });
       }
+      refreshData();
       setIsEditRoomModalOpen(false);
       setRoomToEdit(null);
     } catch (e) {
@@ -418,6 +422,7 @@ const App: React.FC = () => {
     try {
       await usersApi.update(id, { role: 'ADMIN' });
       setGlobalNotification({ type: 'success', message: 'המשתמש קודם לדרגת מנהל.' });
+      refreshData();
     } catch (e) {
       setGlobalNotification({ type: 'error', message: 'פעולה נכשלה.' });
     }
@@ -427,6 +432,7 @@ const App: React.FC = () => {
     try {
       await usersApi.update(id, { role: 'USER' });
       setGlobalNotification({ type: 'success', message: 'הרשאות הניהול הוסרו מהמשתמש.' });
+      refreshData();
     } catch (e) {
       setGlobalNotification({ type: 'error', message: 'פעולה נכשלה.' });
     }
@@ -446,6 +452,7 @@ const App: React.FC = () => {
         try {
           await usersApi.delete(id);
           setGlobalNotification({ type: 'success', message: 'המשתמש נמחקה מהמערכת.' });
+          refreshData();
         } catch (e) {
           setGlobalNotification({ type: 'error', message: 'פעולה נכשלה.' });
         }
@@ -458,6 +465,7 @@ const App: React.FC = () => {
     try {
       await usersApi.update(id, { status: 'APPROVED' });
       setGlobalNotification({ type: 'success', message: 'המשתמש אושר לכניסה למערכת.' });
+      refreshData();
     } catch (e) {
       setGlobalNotification({ type: 'error', message: 'פעולה נכשלה.' });
     }
@@ -467,6 +475,7 @@ const App: React.FC = () => {
     try {
       await usersApi.update(id, { status: 'REJECTED' });
       setGlobalNotification({ type: 'success', message: 'המשתמש נדחה.' });
+      refreshData();
     } catch (e) {
       setGlobalNotification({ type: 'error', message: 'פעולה נכשלה.' });
     }
@@ -617,6 +626,7 @@ const App: React.FC = () => {
                           try {
                             await roomsApi.delete(room.id);
                             setGlobalNotification({ type: 'success', message: 'החדר נמחקה.' });
+                            refreshData();
                           } catch (e) {
                             setGlobalNotification({ type: 'error', message: 'מחיקת החדר נכשלה.' });
                           }
@@ -648,9 +658,11 @@ const App: React.FC = () => {
               users={users}
               onApprove={async (id) => {
                 await bookingsApi.update(id, { status: 'APPROVED' });
+                refreshData();
               }}
               onReject={async (id) => {
                 await bookingsApi.update(id, { status: 'REJECTED' });
+                refreshData();
               }}
               onUserApprove={handleUserApprove}
               onUserReject={handleUserReject}
@@ -662,6 +674,7 @@ const App: React.FC = () => {
                 try {
                   await bookingsApi.delete(id);
                   setGlobalNotification({ type: 'success', message: 'הבקשה נמחקה לצמיתות.' });
+                  refreshData();
                 } catch (e) {
                   setGlobalNotification({ type: 'error', message: 'מחיקת הבקשה נכשלה.' });
                 }
@@ -684,6 +697,7 @@ const App: React.FC = () => {
                     try {
                       await roomsApi.delete(room.id);
                       setGlobalNotification({ type: 'success', message: 'החדר נמחקה.' });
+                      refreshData();
                     } catch (e) {
                       setGlobalNotification({ type: 'error', message: 'מחיקת החדר נכשלה.' });
                     }
