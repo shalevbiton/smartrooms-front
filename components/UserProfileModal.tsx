@@ -1,9 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Save, Camera, User, Phone, MapPin, Briefcase, Loader2, AlertCircle, ChevronDown, Fingerprint, ScanFace } from 'lucide-react';
+import { X, Save, Camera, User, Phone, MapPin, Briefcase, Loader2, AlertCircle, ChevronDown } from 'lucide-react';
 import { User as UserType } from '../types';
-import { authApi } from '../services/api';
-import { startRegistration } from '@simplewebauthn/browser';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -123,23 +121,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, cu
     }
   };
 
-  const handleRegisterPasskey = async () => {
-    try {
-      setError(null);
-      const options = await authApi.getRegisterOptions();
-      const verificationResp = await startRegistration({ optionsJSON: options });
-      const verificationJSON = await authApi.verifyRegister(verificationResp);
-
-      if (verificationJSON && verificationJSON.verified) {
-        alert('Passkey registered successfully!');
-      } else {
-        setError('Passkey registration failed');
-      }
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || 'Passkey registration error');
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -274,19 +255,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, cu
             </div>
           </div>
 
-          <div className="pt-4 border-t border-white/5">
-            <button
-              type="button"
-              onClick={handleRegisterPasskey}
-              className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all border border-white/10"
-            >
-              <Fingerprint size={20} className="text-brand" />
-              <span className="text-brand">/</span>
-              <ScanFace size={20} className="text-brand" />
-              רשום ביומטרי (Passkey)
-            </button>
-            <p className="text-[10px] text-center text-slate-500 mt-2">מאפשר כניסה מהירה ומאובטחת ללא סיסמה</p>
-          </div>
 
 
           <div className="pt-6 flex flex-col sm:flex-row justify-end gap-3 border-t border-white/5 mt-4">
