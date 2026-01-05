@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const stateRef = React.useRef({ rooms: [], bookings: [], users: [] });
   const [isLoading, setIsLoading] = useState(true);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -136,6 +137,11 @@ const App: React.FC = () => {
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [activeCheckoutBooking, setActiveCheckoutBooking] = useState<Booking | null>(null);
 
+  // Keep refs updated
+  useEffect(() => {
+    stateRef.current = { rooms: rooms as any, bookings: bookings as any, users: users as any };
+  }, [rooms, bookings, users]);
+
   useEffect(() => {
     // Load all data
     const loadData = async () => {
@@ -146,28 +152,34 @@ const App: React.FC = () => {
           usersApi.getAll(),
         ]);
 
-        setRooms(roomsData);
-        setBookings(bookingsData);
-        setUsers(usersData);
+        // Helper to check if data changed
+        const hasChanged = (prev: any, current: any) => JSON.stringify(prev) !== JSON.stringify(current);
+
+        if (hasChanged(stateRef.current.rooms, roomsData)) setRooms(roomsData);
+        if (hasChanged(stateRef.current.bookings, bookingsData)) setBookings(bookingsData);
+        if (hasChanged(stateRef.current.users, usersData)) setUsers(usersData);
 
         if (currentUser) {
           const updatedMe = (usersData as User[]).find((u: User) => u.id === currentUser.id);
-          if (updatedMe) {
+          if (updatedMe && hasChanged(currentUser, updatedMe)) {
             setCurrentUser(updatedMe);
           }
         }
         setIsLoading(false);
       } catch (error) {
         console.error("API error:", error);
-        setGlobalNotification({ type: 'error', message: 'שגיאת תקשורת עם בסיס הנתונים. נסה לרענן.' });
-        setIsLoading(false);
+        // Only show error if it's the first load, otherwise silent fail to avoid spamming the user
+        if (isLoading) {
+          setGlobalNotification({ type: 'error', message: 'שגיאת תקשורת עם בסיס הנתונים. נסה לרענן.' });
+          setIsLoading(false);
+        }
       }
     };
 
     loadData();
 
-    // Poll for updates every 5 seconds
-    const interval = setInterval(loadData, 5000);
+    // Poll for updates every 30 seconds
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, [currentUser?.id]);
 
