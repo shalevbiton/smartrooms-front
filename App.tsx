@@ -646,6 +646,14 @@ const App: React.FC = () => {
               currentBackground={activeBackground}
               onUpdateVideo={handleUpdateVideo}
               onRemoveVideo={handleRemoveVideo}
+              onDelete={async (id) => {
+                try {
+                  await bookingsApi.delete(id);
+                  setGlobalNotification({ type: 'success', message: 'הבקשה נמחקה לצמיתות.' });
+                } catch (e) {
+                  setGlobalNotification({ type: 'error', message: 'מחיקת הבקשה נכשלה.' });
+                }
+              }}
             />
           )}
 

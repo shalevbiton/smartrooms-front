@@ -5,7 +5,7 @@ import {
   Video, Play, X, ChevronDown, ChevronUp,
   Phone, Users, FileText, Download, LayoutList, Grid3X3,
   ChevronRight, ChevronLeft, ExternalLink, FileSpreadsheet,
-  Maximize2, Filter, FilterX, Eye, EyeOff, AlertTriangle
+  Maximize2, Filter, FilterX, Eye, EyeOff, AlertTriangle, ShieldAlert
 } from 'lucide-react';
 import { Booking, Room } from '../types';
 import { resolveVideoUrl } from './CheckoutGallery';
@@ -38,6 +38,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
   const [videoMap, setVideoMap] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAllRoomsInSchedule, setShowAllRoomsInSchedule] = useState(false);
+  const [actionBookingId, setActionBookingId] = useState<string | null>(null);
 
   const getBookingColorVar = (bookingId: string) => {
     let hash = 0;
@@ -271,7 +272,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                           <div className="flex gap-2">
                             {booking.status === 'APPROVED' && onAction && (
                               <button
-                                onClick={() => onAction(booking.id, 'CANCEL')}
+                                onClick={() => setActionBookingId(booking.id)}
                                 className="flex-1 py-2 text-[10px] font-black text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all"
                               >
                                 ביטול הזמנה
@@ -371,6 +372,53 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                   })}
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {actionBookingId && onAction && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-surface w-full max-w-md rounded-3xl p-6 shadow-2xl border border-subtle animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center">
+                <ShieldAlert size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-primary">ביטול הזמנה</h3>
+                <p className="text-secondary font-medium mt-1">כיצד תרצה לטפל בהזמנה זו?</p>
+              </div>
+
+              <div className="w-full space-y-3 mt-4">
+                <button
+                  onClick={() => {
+                    onAction(actionBookingId, 'CANCEL');
+                    setActionBookingId(null);
+                  }}
+                  className="w-full py-4 bg-tertiary hover:bg-tertiary/80 text-primary border border-subtle rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
+                >
+                  <X size={18} />
+                  בטל בלבד (שמור בהיסטוריה)
+                </button>
+
+                <button
+                  onClick={() => {
+                    onAction(actionBookingId, 'DELETE');
+                    setActionBookingId(null);
+                  }}
+                  className="w-full py-4 bg-red-500 text-white hover:bg-red-600 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 transition-all"
+                >
+                  <Trash2 size={18} />
+                  מחק הזמנה לצמיתות
+                </button>
+              </div>
+
+              <button
+                onClick={() => setActionBookingId(null)}
+                className="text-sm font-bold text-secondary hover:text-primary mt-2"
+              >
+                חזור
+              </button>
             </div>
           </div>
         </div>

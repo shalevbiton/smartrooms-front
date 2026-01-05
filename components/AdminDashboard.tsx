@@ -22,16 +22,18 @@ interface AdminDashboardProps {
   currentBackground?: string;
   onUpdateVideo?: (url: string) => void;
   onRemoveVideo?: () => void;
+  onDelete: (id: string) => void;
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({
-  bookings, rooms, users, onApprove, onReject, onUserApprove, onUserReject, onUpdateBackground, currentBackground, onUpdateVideo, onRemoveVideo
+  bookings, rooms, users, onApprove, onReject, onUserApprove, onUserReject, onUpdateBackground, currentBackground, onUpdateVideo, onRemoveVideo, onDelete
 }) => {
   const [activeTab, setActiveTab] = useState<'bookings' | 'users' | 'settings'>('bookings');
   const [searchTerm, setSearchTerm] = useState('');
   const [isCompressing, setIsCompressing] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [customExportDate, setCustomExportDate] = useState('');
+  const [rejectingBookingId, setRejectingBookingId] = useState<string | null>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -331,7 +333,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                         <div className="flex gap-3 w-full sm:w-auto">
                           <button
-                            onClick={() => onReject(booking.id)}
+                            onClick={() => setRejectingBookingId(booking.id)}
                             className="flex-1 sm:flex-none px-6 py-2.5 text-sm font-black text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition-all"
                           >
                             דחה בקשה
@@ -475,7 +477,56 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <StatCard icon={<FileText size={24} />} count={pendingBookings.length} label="בקשות פתוחות" color="text-amber-500" />
         <StatCard icon={<TrendingUp size={24} />} count={pendingUsers.length} label="ממתינים לסיווג" color="text-indigo-500" />
       </div>
-    </div>
+
+      {
+        rejectingBookingId && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-surface w-full max-w-md rounded-3xl p-6 shadow-2xl border border-subtle animate-in zoom-in-95 duration-200">
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center">
+                  <ShieldAlert size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-primary">דחיית בקשה</h3>
+                  <p className="text-secondary font-medium mt-1">כיצד תרצה לטפל בבקשה זו?</p>
+                </div>
+
+                <div className="w-full space-y-3 mt-4">
+                  <button
+                    onClick={() => {
+                      onReject(rejectingBookingId);
+                      setRejectingBookingId(null);
+                    }}
+                    className="w-full py-4 bg-tertiary hover:bg-tertiary/80 text-primary border border-subtle rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
+                  >
+                    <X size={18} />
+                    דחה בלבד (שמור בהיסטוריה)
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onDelete(rejectingBookingId);
+                      setRejectingBookingId(null);
+                    }}
+                    className="w-full py-4 bg-red-500 text-white hover:bg-red-600 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 transition-all"
+                  >
+                    <Trash2 size={18} />
+                    מחק בקשה לצמיתות
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setRejectingBookingId(null)}
+                  className="text-sm font-bold text-secondary hover:text-primary mt-2"
+                >
+                  ביטול
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 
