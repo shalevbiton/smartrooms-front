@@ -35,7 +35,7 @@ const BOOKING_VARS = [
 const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId, isAdmin = false, onAction, onBookRoom }) => {
   const [viewType, setViewType] = useState<'list' | 'schedule'>('list');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
-  const [videoMap, setVideoMap] = useState<Record<string, string>>({});
+  const [videoMap, setVideoMap] = useState<Record<string, string | null>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAllRoomsInSchedule, setShowAllRoomsInSchedule] = useState(false);
   const [actionBookingId, setActionBookingId] = useState<string | null>(null);
@@ -73,7 +73,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
 
   useEffect(() => {
     const loadVideos = async () => {
-      const map: Record<string, string> = {};
+      const map: Record<string, string | null> = {};
       for (const b of filteredBookings) {
         if (b.status === 'COMPLETED' && b.checkoutVideoUrl) {
           map[b.id] = await resolveVideoUrl(b.checkoutVideoUrl);
