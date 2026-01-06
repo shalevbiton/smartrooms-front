@@ -8,7 +8,7 @@ import {
   Maximize2, Filter, FilterX, Eye, EyeOff, AlertTriangle, ShieldAlert
 } from 'lucide-react';
 import { Booking, Room } from '../types';
-import { resolveVideoUrl } from './CheckoutGallery';
+
 import { downloadFile, generateBookingSummary, convertToCSV } from '../utils/downloadUtils';
 
 interface MyBookingsProps {
@@ -72,16 +72,15 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
   }, [rooms, dailyBookings, showAllRoomsInSchedule]);
 
   useEffect(() => {
-    const loadVideos = async () => {
-      const map: Record<string, string | null> = {};
-      for (const b of filteredBookings) {
-        if (b.status === 'COMPLETED' && b.checkoutVideoUrl) {
-          map[b.id] = await resolveVideoUrl(b.checkoutVideoUrl);
-        }
+    // Direct URL mapping for cloud storage
+    const map: Record<string, string | null> = {};
+    filteredBookings.forEach(b => {
+      if (b.status === 'COMPLETED' && b.checkoutVideoUrl) {
+        const url = b.checkoutVideoUrl;
+        map[b.id] = (url && url.startsWith('http')) ? url : null;
       }
-      setVideoMap(map);
-    };
-    loadVideos();
+    });
+    setVideoMap(map);
   }, [filteredBookings]);
 
   const getRoom = (id: string) => rooms.find(r => r.id === id);

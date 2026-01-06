@@ -3,44 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Booking, Room } from '../types';
 import { Calendar, Clock, MapPin, User, X, Play, Loader2, AlertCircle } from 'lucide-react';
 
-// Resolve Vault IDs to Blob URLs
-export const resolveVideoUrl = async (url: string): Promise<string | null> => {
-  if (!url || !url.startsWith('local-v-')) return url || null;
-
-  return new Promise((resolve) => {
-    const request = indexedDB.open('SmartRoomVault', 2);
-    request.onsuccess = (e: any) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('videos')) {
-        try { db.close(); } catch { }
-        return resolve(null);
-      }
-
-      try {
-        const transaction = db.transaction(['videos'], 'readonly');
-        const store = transaction.objectStore('videos');
-        const getRequest = store.get(url);
-
-        getRequest.onsuccess = () => {
-          if (getRequest.result) {
-            resolve(URL.createObjectURL(getRequest.result));
-          } else {
-            resolve(null);
-          }
-          try { db.close(); } catch { }
-        };
-        getRequest.onerror = () => {
-          resolve(null);
-          try { db.close(); } catch { }
-        };
-      } catch (err) {
-        try { db.close(); } catch { }
-        resolve(null);
-      }
-    };
-    request.onerror = () => resolve(null);
-  });
-};
+// Removed resolveVideoUrl (IndexedDB) as we now use cloud URLs
 
 interface CheckoutGalleryProps {
   bookings: Booking[];
@@ -57,16 +20,14 @@ const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) =>
   ).sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime());
 
   useEffect(() => {
-    const loadVideos = async () => {
-      const map: Record<string, string | null> = {};
-      for (const item of galleryItems) {
-        if (item.checkoutVideoUrl) {
-          map[item.id] = await resolveVideoUrl(item.checkoutVideoUrl);
-        }
-      }
-      setVideoMap(map);
-    };
-    loadVideos();
+    // Direct URL mapping for cloud storage
+    const map: Record<string, string | null> = {};
+    galleryItems.forEach(item => {
+      const url = item.checkoutVideoUrl;
+      // Only accept valid HTTP(S) URLs. Old 'local-v-' IDs will be treated as null (not found)
+      map[item.id] = (url && url.startsWith('http')) ? url : null;
+    });
+    setVideoMap(map);
   }, [bookings]);
 
   const getRoomName = (roomId: string) => rooms.find((r) => r.id === roomId)?.name || 'חדר לא ידוע';

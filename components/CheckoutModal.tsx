@@ -1,33 +1,6 @@
-
 import React, { useState, useRef } from 'react';
 import { X, CheckCircle, Loader2, AlertCircle, RotateCcw, ShieldCheck, Upload, FileVideo, ShieldAlert, Trash2 } from 'lucide-react';
-
-// IndexedDB Helper for Large File Storage
-const saveToLocalVault = async (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('SmartRoomVault', 2);
-
-    request.onupgradeneeded = (e: any) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('videos')) {
-        db.createObjectStore('videos');
-      }
-    };
-
-    request.onsuccess = (e: any) => {
-      const db = e.target.result;
-      const transaction = db.transaction(['videos'], 'readwrite');
-      const store = transaction.objectStore('videos');
-      const id = `local-v-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      const putRequest = store.put(file, id);
-      putRequest.onsuccess = () => resolve(id);
-      putRequest.onerror = () => reject(new Error('Failed to store in local vault'));
-    };
-
-    request.onerror = () => reject(new Error('IndexedDB access denied'));
-  });
-};
+import { storageApi } from '../services/api';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -82,27 +55,37 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
 
     setIsSubmitting(true);
     setError(null);
-    setUploadProgress(0);
+    setUploadProgress(10);
 
     try {
-      // 1. Local Storage Phase (IndexedDB)
-      // This allows the user to see THEIR OWN video without breaking Firestore
-      const vaultId = await saveToLocalVault(selectedFile);
+      // 1. Get Signed Upload URL from Backend
+      const { signedUrl, publicUrl } = await storageApi.getUploadUrl(selectedFile.name, selectedFile.type);
 
-      // 2. Mock Network Progress
-      for (let i = 0; i <= 100; i += 20) {
-        setUploadProgress(i);
-        await new Promise(r => setTimeout(r, 150));
+      setUploadProgress(30);
+
+      // 2. Upload to Cloud Storage
+      const uploadResponse = await fetch(signedUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: {
+          'Content-Type': selectedFile.type
+        }
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Upload to storage failed');
       }
 
-      // 3. Finalize
-      // We send the small Vault ID to Firestore.
-      await onConfirm(vaultId);
+      setUploadProgress(80);
 
+      // 3. Finalize
+      await onConfirm(publicUrl);
+
+      setUploadProgress(100);
       onClose();
     } catch (err: any) {
-      console.error("Vault storage failed:", err);
-      setError('שגיאה בשמירת התיעוד. נא לוודא שיש מקום פנוי במכשיר.');
+      console.error("Upload failed:", err);
+      setError('שגיאה בהעלאת הוידאו לענן. אנא נסה שנית.');
       setUploadProgress(0);
     } finally {
       setIsSubmitting(false);

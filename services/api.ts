@@ -53,3 +53,12 @@ export const authApi = {
   verifyLogin: (personalId: string, data: any) => apiRequest('/auth/login-verify', { method: 'POST', body: JSON.stringify({ personalId, body: data }) }),
 };
 
+// Storage API
+export const storageApi = {
+  getUploadUrl: (fileName: string, contentType: string) =>
+    apiRequest('/api/storage/upload-url', {
+      method: 'POST',
+      body: JSON.stringify({ fileName, contentType })
+    }),
+};
+
