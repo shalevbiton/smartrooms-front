@@ -5,8 +5,8 @@ import { X, CheckCircle, Loader2, AlertCircle, RotateCcw, ShieldCheck, Upload, F
 // IndexedDB Helper for Large File Storage
 const saveToLocalVault = async (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('SmartRoomVault', 1);
-    
+    const request = indexedDB.open('SmartRoomVault', 2);
+
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains('videos')) {
@@ -19,7 +19,7 @@ const saveToLocalVault = async (file: File): Promise<string> => {
       const transaction = db.transaction(['videos'], 'readwrite');
       const store = transaction.objectStore('videos');
       const id = `local-v-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       const putRequest = store.put(file, id);
       putRequest.onsuccess = () => resolve(id);
       putRequest.onerror = () => reject(new Error('Failed to store in local vault'));
@@ -51,10 +51,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
     setError(null);
 
     if (file) {
-      const isVideo = file.type.startsWith('video/') || 
-                      file.name.toLowerCase().endsWith('.mp4') || 
-                      file.name.toLowerCase().endsWith('.mov') || 
-                      file.name.toLowerCase().endsWith('.webm');
+      const isVideo = file.type.startsWith('video/') ||
+        file.name.toLowerCase().endsWith('.mp4') ||
+        file.name.toLowerCase().endsWith('.mov') ||
+        file.name.toLowerCase().endsWith('.webm');
 
       if (!isVideo) {
         setError('נא לבחור קובץ וידאו תקין בלבד (MP4, MOV, WebM).');
@@ -79,16 +79,16 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
 
   const handleSubmit = async () => {
     if (!videoUrl || !selectedFile) return;
-    
+
     setIsSubmitting(true);
     setError(null);
     setUploadProgress(0);
-    
+
     try {
       // 1. Local Storage Phase (IndexedDB)
       // This allows the user to see THEIR OWN video without breaking Firestore
       const vaultId = await saveToLocalVault(selectedFile);
-      
+
       // 2. Mock Network Progress
       for (let i = 0; i <= 100; i += 20) {
         setUploadProgress(i);
@@ -98,7 +98,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
       // 3. Finalize
       // We send the small Vault ID to Firestore.
       await onConfirm(vaultId);
-      
+
       onClose();
     } catch (err: any) {
       console.error("Vault storage failed:", err);
@@ -116,8 +116,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
       <div className="bg-surface rounded-lg w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] border border-subtle animate-in fade-in zoom-in-95 duration-200">
         <div className="px-6 py-5 border-b border-subtle flex justify-between items-center bg-tertiary/50">
           <div className="flex items-center gap-3">
-             <div className="w-1.5 h-6 bg-brand"></div>
-             <h2 className="text-base font-bold text-primary tracking-tight">דיווח סיום שימוש - {roomName}</h2>
+            <div className="w-1.5 h-6 bg-brand"></div>
+            <h2 className="text-base font-bold text-primary tracking-tight">דיווח סיום שימוש - {roomName}</h2>
           </div>
           <button onClick={onClose} className="text-secondary hover:text-primary transition-colors" disabled={isSubmitting}>
             <X size={20} />
@@ -137,7 +137,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
 
           <div className="relative aspect-video bg-tertiary/20 rounded-lg overflow-hidden border border-subtle shadow-inner group">
             {mode === 'IDLE' && (
-              <div 
+              <div
                 className="absolute inset-0 flex flex-col items-center justify-center p-8 space-y-4 cursor-pointer hover:bg-tertiary/40 transition-all"
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -161,24 +161,24 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
                   </button>
                 )}
                 <div className="absolute top-4 right-4 bg-slate-900/90 text-white px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 backdrop-blur-sm border border-white/10">
-                   <FileVideo size={14} /> {selectedFile?.name}
+                  <FileVideo size={14} /> {selectedFile?.name}
                 </div>
-                
+
                 {isSubmitting && (
-                   <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] flex items-center justify-center z-20">
-                      <div className="w-64 space-y-4 text-center">
-                         <div className="relative inline-block">
-                           <Loader2 className="animate-spin text-white mx-auto" size={48} />
-                           <div className="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold">{uploadProgress}%</div>
-                         </div>
-                         <div className="space-y-1.5">
-                            <p className="text-white text-xs font-bold uppercase tracking-widest">מבצע כתיבה למאגר המאובטח...</p>
-                            <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
-                               <div className="h-full bg-white transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
-                            </div>
-                         </div>
+                  <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] flex items-center justify-center z-20">
+                    <div className="w-64 space-y-4 text-center">
+                      <div className="relative inline-block">
+                        <Loader2 className="animate-spin text-white mx-auto" size={48} />
+                        <div className="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold">{uploadProgress}%</div>
                       </div>
-                   </div>
+                      <div className="space-y-1.5">
+                        <p className="text-white text-xs font-bold uppercase tracking-widest">מבצע כתיבה למאגר המאובטח...</p>
+                        <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
+                          <div className="h-full bg-white transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -206,8 +206,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onConfir
         </div>
 
         <div className="px-8 py-4 bg-tertiary/50 border-t border-subtle flex items-center justify-center gap-2">
-           <ShieldCheck size={14} className="text-secondary" />
-           <span className="text-[9px] font-bold text-secondary uppercase tracking-widest">מערכת דיווח מבצעית V4.7 // Security Protocol Enabled</span>
+          <ShieldCheck size={14} className="text-secondary" />
+          <span className="text-[9px] font-bold text-secondary uppercase tracking-widest">מערכת דיווח מבצעית V4.7 // Security Protocol Enabled</span>
         </div>
       </div>
     </div>

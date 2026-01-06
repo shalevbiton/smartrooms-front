@@ -5,29 +5,29 @@ import { Calendar, Clock, MapPin, User, X, Play, Loader2 } from 'lucide-react';
 
 // Resolve Vault IDs to Blob URLs
 export const resolveVideoUrl = async (url: string): Promise<string> => {
-  if (!url || !url.startsWith('local-v-')) return url || 'https://www.w3schools.com/html/mov_bbb.mp4';
+  if (!url || !url.startsWith('local-v-')) return url || '';
 
   return new Promise((resolve) => {
-    const request = indexedDB.open('SmartRoomVault', 1);
+    const request = indexedDB.open('SmartRoomVault', 2);
     request.onsuccess = (e: any) => {
       const db = e.target.result;
-      if (!db.objectStoreNames.contains('videos')) return resolve('https://www.w3schools.com/html/mov_bbb.mp4');
-      
+      if (!db.objectStoreNames.contains('videos')) return resolve('');
+
       const transaction = db.transaction(['videos'], 'readonly');
       const store = transaction.objectStore('videos');
       const getRequest = store.get(url);
-      
+
       getRequest.onsuccess = () => {
         if (getRequest.result) {
           resolve(URL.createObjectURL(getRequest.result));
         } else {
-          // Fallback if record was created on another device
-          resolve('https://www.w3schools.com/html/mov_bbb.mp4');
+          // Record not found on this device
+          resolve('');
         }
       };
-      getRequest.onerror = () => resolve('https://www.w3schools.com/html/mov_bbb.mp4');
+      getRequest.onerror = () => resolve('');
     };
-    request.onerror = () => resolve('https://www.w3schools.com/html/mov_bbb.mp4');
+    request.onerror = () => resolve('');
   });
 };
 
@@ -83,7 +83,7 @@ const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) =>
             const resolvedUrl = videoMap[item.id];
             return (
               <div key={item.id} className="bg-surface rounded-xl border border-subtle overflow-hidden shadow-sm hover:shadow-md transition-all group">
-                <div 
+                <div
                   className="h-48 overflow-hidden relative cursor-pointer bg-black"
                   onClick={() => resolvedUrl && setSelectedVideo(resolvedUrl)}
                 >
@@ -93,34 +93,34 @@ const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) =>
                     <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-white/20" /></div>
                   )}
                   <div className="absolute inset-0 flex items-center justify-center transition-colors">
-                     <div className="bg-brand text-white p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
-                        <Play size={24} fill="currentColor" />
-                     </div>
+                    <div className="bg-brand text-white p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
+                      <Play size={24} fill="currentColor" />
+                    </div>
                   </div>
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                     <div>
-                          <h3 className="font-bold text-primary line-clamp-1">{item.title}</h3>
-                          <div className="flex items-center gap-1.5 text-xs text-secondary mt-1">
-                              <MapPin size={12} className="text-brand" />
-                              <span>{getRoomName(item.roomId)}</span>
-                          </div>
-                     </div>
-                     <div className="bg-brand/10 text-brand text-[10px] font-bold px-2 py-1 rounded-full uppercase border border-brand/20">הסתיים</div>
+                    <div>
+                      <h3 className="font-bold text-primary line-clamp-1">{item.title}</h3>
+                      <div className="flex items-center gap-1.5 text-xs text-secondary mt-1">
+                        <MapPin size={12} className="text-brand" />
+                        <span>{getRoomName(item.roomId)}</span>
+                      </div>
+                    </div>
+                    <div className="bg-brand/10 text-brand text-[10px] font-bold px-2 py-1 rounded-full uppercase border border-brand/20">הסתיים</div>
                   </div>
-                  
+
                   <div className="border-t border-subtle mt-3 pt-3 space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-secondary">
-                          <User size={14} className="text-brand" />
-                          <span className="truncate">{item.userName}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-secondary">
-                          <Calendar size={14} className="text-brand" />
-                          <span className="truncate">{new Date(item.endTime).toLocaleDateString('he-IL')}</span>
-                          <Clock size={14} className="text-brand mr-1" />
-                          <span>{new Date(item.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
+                    <div className="flex items-center gap-2 text-sm text-secondary">
+                      <User size={14} className="text-brand" />
+                      <span className="truncate">{item.userName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-secondary">
+                      <Calendar size={14} className="text-brand" />
+                      <span className="truncate">{new Date(item.endTime).toLocaleDateString('he-IL')}</span>
+                      <Clock size={14} className="text-brand mr-1" />
+                      <span>{new Date(item.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -131,12 +131,12 @@ const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) =>
 
       {selectedVideo && (
         <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setSelectedVideo(null)}>
-            <button className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors z-30" onClick={() => setSelectedVideo(null)}>
-                <X size={24} />
-            </button>
-            <div className="w-full max-w-4xl relative aspect-video bg-black rounded-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-                <video src={selectedVideo} controls autoPlay className="w-full h-full" onClick={(e) => e.stopPropagation()} />
-            </div>
+          <button className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors z-30" onClick={() => setSelectedVideo(null)}>
+            <X size={24} />
+          </button>
+          <div className="w-full max-w-4xl relative aspect-video bg-black rounded-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <video src={selectedVideo} controls autoPlay className="w-full h-full" onClick={(e) => e.stopPropagation()} />
+          </div>
         </div>
       )}
     </div>
