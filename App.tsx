@@ -283,8 +283,13 @@ const App: React.FC = () => {
   const handleCreateBooking = async (data: any) => {
     if (!currentUser) return;
 
-    const startISO = `${data.date}T${data.startTime || '00:00'}:00`;
-    const endISO = `${data.date}T${data.endTime || '23:59'}:00`;
+    const localStartStr = `${data.date}T${data.startTime || '00:00'}:00`;
+    const localEndStr = `${data.date}T${data.endTime || '23:59'}:00`;
+
+    // Convert to UTC ISO strings for storage
+    const startISO = new Date(localStartStr).toISOString();
+    const endISO = new Date(localEndStr).toISOString();
+
     const requestedStart = new Date(startISO).getTime();
     const requestedEnd = new Date(endISO).getTime();
     const now = new Date().getTime();
@@ -309,7 +314,7 @@ const App: React.FC = () => {
     const newBooking: Omit<Booking, 'id'> = {
       userId: currentUser.id,
       userName: currentUser.name,
-      status: 'PENDING',
+      status: currentUser.role === 'ADMIN' ? 'APPROVED' : 'PENDING',
       createdAt: new Date().toISOString(),
       roomId: data.roomId,
       title: data.title,

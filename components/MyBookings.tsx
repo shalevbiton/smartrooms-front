@@ -283,12 +283,23 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                           <p className="text-[10px] font-black text-secondary uppercase tracking-widest">פעולות</p>
                           <div className="flex gap-2">
                             {booking.status === 'APPROVED' && onAction && (
-                              <button
-                                onClick={() => setActionBookingId(booking.id)}
-                                className="flex-1 py-2 text-[10px] font-black text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all"
-                              >
-                                ביטול הזמנה
-                              </button>
+                              <>
+                                {(new Date(booking.startTime) <= new Date() && new Date(booking.endTime) > new Date()) && (
+                                  <button
+                                    onClick={() => onAction(booking.id, 'CHECKOUT')}
+                                    className="flex-1 py-2 text-[10px] font-black text-white bg-brand hover:bg-brand-hover border border-transparent rounded-lg transition-all shadow-sm flex items-center justify-center gap-1.5"
+                                  >
+                                    <LogOut size={14} />
+                                    סיים שימוש
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => setActionBookingId(booking.id)}
+                                  className="flex-1 py-2 text-[10px] font-black text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all"
+                                >
+                                  ביטול הזמנה
+                                </button>
+                              </>
                             )}
                             {booking.status === 'PENDING' && isAdmin && onAction && (
                               <button
@@ -307,6 +318,14 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                               </button>
                             )}
                             {booking.status === 'CANCELLED' && onAction && (
+                              <button
+                                onClick={() => onAction(booking.id, 'DELETE')}
+                                className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
+                              >
+                                מחק מההיסטוריה
+                              </button>
+                            )}
+                            {booking.status === 'COMPLETED' && isAdmin && onAction && (
                               <button
                                 onClick={() => onAction(booking.id, 'DELETE')}
                                 className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
