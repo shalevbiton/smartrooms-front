@@ -1,33 +1,44 @@
 
 import React, { useState, useEffect } from 'react';
 import { Booking, Room } from '../types';
-import { Calendar, Clock, MapPin, User, X, Play, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, X, Play, Loader2, AlertCircle } from 'lucide-react';
 
 // Resolve Vault IDs to Blob URLs
-export const resolveVideoUrl = async (url: string): Promise<string> => {
-  if (!url || !url.startsWith('local-v-')) return url || '';
+export const resolveVideoUrl = async (url: string): Promise<string | null> => {
+  if (!url || !url.startsWith('local-v-')) return url || null;
 
   return new Promise((resolve) => {
     const request = indexedDB.open('SmartRoomVault', 2);
     request.onsuccess = (e: any) => {
       const db = e.target.result;
-      if (!db.objectStoreNames.contains('videos')) return resolve('');
+      if (!db.objectStoreNames.contains('videos')) {
+        try { db.close(); } catch { }
+        return resolve(null);
+      }
 
-      const transaction = db.transaction(['videos'], 'readonly');
-      const store = transaction.objectStore('videos');
-      const getRequest = store.get(url);
+      try {
+        const transaction = db.transaction(['videos'], 'readonly');
+        const store = transaction.objectStore('videos');
+        const getRequest = store.get(url);
 
-      getRequest.onsuccess = () => {
-        if (getRequest.result) {
-          resolve(URL.createObjectURL(getRequest.result));
-        } else {
-          // Record not found on this device
-          resolve('');
-        }
-      };
-      getRequest.onerror = () => resolve('');
+        getRequest.onsuccess = () => {
+          if (getRequest.result) {
+            resolve(URL.createObjectURL(getRequest.result));
+          } else {
+            resolve(null);
+          }
+          try { db.close(); } catch { }
+        };
+        getRequest.onerror = () => {
+          resolve(null);
+          try { db.close(); } catch { }
+        };
+      } catch (err) {
+        try { db.close(); } catch { }
+        resolve(null);
+      }
     };
-    request.onerror = () => resolve('');
+    request.onerror = () => resolve(null);
   });
 };
 
@@ -38,7 +49,7 @@ interface CheckoutGalleryProps {
 
 const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) => {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-  const [videoMap, setVideoMap] = useState<Record<string, string>>({});
+  const [videoMap, setVideoMap] = useState<Record<string, string | null>>({});
 
   // Filter completed bookings that have a video
   const galleryItems = bookings.filter(
@@ -47,7 +58,7 @@ const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) =>
 
   useEffect(() => {
     const loadVideos = async () => {
-      const map: Record<string, string> = {};
+      const map: Record<string, string | null> = {};
       for (const item of galleryItems) {
         if (item.checkoutVideoUrl) {
           map[item.id] = await resolveVideoUrl(item.checkoutVideoUrl);
@@ -81,22 +92,38 @@ const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) =>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {galleryItems.map((item) => {
             const resolvedUrl = videoMap[item.id];
+            // undefined = loading, null = not found, string = found
+            const isLoading = resolvedUrl === undefined;
+            const isError = resolvedUrl === null;
+
             return (
               <div key={item.id} className="bg-surface rounded-xl border border-subtle overflow-hidden shadow-sm hover:shadow-md transition-all group">
                 <div
-                  className="h-48 overflow-hidden relative cursor-pointer bg-black"
+                  className={`h-48 overflow-hidden relative bg-black ${!isError && !isLoading ? 'cursor-pointer' : ''}`}
                   onClick={() => resolvedUrl && setSelectedVideo(resolvedUrl)}
                 >
-                  {resolvedUrl ? (
+                  {!isLoading && !isError && (
                     <video src={resolvedUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
-                  ) : (
+                  )}
+
+                  {isLoading && (
                     <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-white/20" /></div>
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center transition-colors">
-                    <div className="bg-brand text-white p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
-                      <Play size={24} fill="currentColor" />
+
+                  {isError && (
+                    <div className="flex flex-col items-center justify-center h-full text-white/40">
+                      <AlertCircle size={32} />
+                      <span className="text-xs font-bold mt-2">הוידאו לא נמצא</span>
                     </div>
-                  </div>
+                  )}
+
+                  {!isLoading && !isError && (
+                    <div className="absolute inset-0 flex items-center justify-center transition-colors">
+                      <div className="bg-brand text-white p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
+                        <Play size={24} fill="currentColor" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
