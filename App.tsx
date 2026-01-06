@@ -283,12 +283,25 @@ const App: React.FC = () => {
   const handleCreateBooking = async (data: any) => {
     if (!currentUser) return;
 
-    const localStartStr = `${data.date}T${data.startTime || '00:00'}:00`;
-    const localEndStr = `${data.date}T${data.endTime || '23:59'}:00`;
+    let startISO: string, endISO: string;
 
-    // Convert to UTC ISO strings for storage
-    const startISO = new Date(localStartStr).toISOString();
-    const endISO = new Date(localEndStr).toISOString();
+    try {
+      const localStartStr = `${data.date}T${data.startTime || '00:00'}:00`;
+      const localEndStr = `${data.date}T${data.endTime || '23:59'}:00`;
+
+      // Convert to UTC ISO strings for storage safely
+      const sDate = new Date(localStartStr);
+      const eDate = new Date(localEndStr);
+
+      if (isNaN(sDate.getTime()) || isNaN(eDate.getTime())) throw new Error('Invalid Date');
+
+      startISO = sDate.toISOString();
+      endISO = eDate.toISOString();
+    } catch (err) {
+      console.error("Date conversion failed:", err);
+      setGlobalNotification({ type: 'error', message: 'שגיאה בפורמט התאריך או השעה.' });
+      return;
+    }
 
     const requestedStart = new Date(startISO).getTime();
     const requestedEnd = new Date(endISO).getTime();
@@ -300,7 +313,8 @@ const App: React.FC = () => {
     }
 
     const hasConflict = bookings.some(b => {
-      if (b.roomId !== data.roomId || b.status !== 'APPROVED') return false;
+      // Check for conflicts with APPROVED or PENDING bookings
+      if (b.roomId !== data.roomId || (b.status !== 'APPROVED' && b.status !== 'PENDING')) return false;
       const bStart = new Date(b.startTime).getTime();
       const bEnd = new Date(b.endTime).getTime();
       return requestedStart < bEnd && requestedEnd > bStart;
@@ -334,8 +348,16 @@ const App: React.FC = () => {
       setCurrentView('my-bookings');
       setGlobalNotification({ type: 'success', message: 'בקשת ההזמנה נשלחה בהצלחה!' });
       refreshData();
-    } catch (e) {
-      setGlobalNotification({ type: 'error', message: 'שגיאה ביצירת ההזמנה.' });
+    } catch (e: any) {
+      console.error("Booking creation failed:", e);
+      // Show the actual error from the backend if available
+      const errorMessage = e && e.message ? e.message : 'שגיאה ביצירת ההזמנה.';
+
+      if (errorMessage.toLowerCase().includes('conflict') || errorMessage.toLowerCase().includes('exclude')) {
+        setGlobalNotification({ type: 'error', message: 'החדר תפוס (ייתכן שיש הזמנה מבוטלת החוסמת את השעות - פנה למנהל).' });
+      } else {
+        setGlobalNotification({ type: 'error', message: errorMessage });
+      }
     }
   };
 
