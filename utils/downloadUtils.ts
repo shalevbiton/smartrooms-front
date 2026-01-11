@@ -63,7 +63,7 @@ export const generateBookingSummary = (booking: Booking, roomName: string) => {
  */
 export const convertToCSV = (bookings: Booking[], rooms: Room[]) => {
   const header = [
-    'מזהה', 'שם חוקר', 'מ"א חוקר', 'נחקר', 'עבירה', 'חדר', 'התחלה', 'סיום', 'סטטוס', 'מוקלט'
+    'מזהה', 'שם חוקר', 'מ"א חוקר', 'נחקר', 'סוג', 'עבירה', 'חדר', 'התחלה', 'סיום', 'סטטוס', 'מוקלט'
   ].join(',');
 
   const rows = bookings.map(b => {
@@ -73,6 +73,7 @@ export const convertToCSV = (bookings: Booking[], rooms: Room[]) => {
       `"${b.title}"`,
       b.investigatorId,
       `"${b.interrogatedName}"`,
+      b.type === 'TESTIMONY' ? 'עדות' : 'חקירה',
       `"${b.offenses}"`,
       `"${room}"`,
       new Date(b.startTime).toLocaleString('he-IL'),

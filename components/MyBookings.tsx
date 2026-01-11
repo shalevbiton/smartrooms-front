@@ -259,7 +259,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
 
                   {isExpanded && (
                     <div className="p-6 bg-tertiary/30 border-t border-subtle space-y-6 animate-in slide-in-from-top-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                         <div className="space-y-1">
                           <p className="text-[10px] font-black text-secondary uppercase tracking-widest">חוקר / מבצע</p>
                           <div className="flex items-center gap-2">
@@ -283,9 +283,16 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] font-black text-secondary uppercase tracking-widest">סוג העבירה</p>
+                          <p className="text-[10px] font-black text-secondary uppercase tracking-widest">סוג התיק</p>
                           <div className="flex items-center gap-2">
                             <FileText size={16} className="text-brand" />
+                            <p className="text-sm font-bold text-primary">{booking.type === 'TESTIMONY' ? 'עדות' : 'חקירה'}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black text-secondary uppercase tracking-widest">סוג העבירה</p>
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle size={16} className="text-brand" />
                             <p className="text-sm font-bold text-primary truncate" title={booking.offenses}>{booking.offenses}</p>
                           </div>
                         </div>

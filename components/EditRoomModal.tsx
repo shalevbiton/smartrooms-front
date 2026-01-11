@@ -14,7 +14,7 @@ interface EditRoomModalProps {
 const EditRoomModal: React.FC<EditRoomModalProps> = ({ isOpen, onClose, room, onSave, existingRooms = [] }) => {
   const [name, setName] = useState('');
   const [capacity, setCapacity] = useState(1);
-  const [description, setDescription] = useState('');
+  const [locationType, setLocationType] = useState<'PRISON' | 'YAMAR'>('YAMAR');
   const [equipmentString, setEquipmentString] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
@@ -27,7 +27,7 @@ const EditRoomModal: React.FC<EditRoomModalProps> = ({ isOpen, onClose, room, on
       if (room) {
         setName(room.name);
         setCapacity(room.capacity);
-        setDescription(room.description);
+        setLocationType(room.locationType || 'YAMAR');
         setEquipmentString(room.equipment.join(', '));
         setImageUrl(room.imageUrl);
         setIsAvailable(room.isAvailable !== undefined ? room.isAvailable : true);
@@ -35,7 +35,7 @@ const EditRoomModal: React.FC<EditRoomModalProps> = ({ isOpen, onClose, room, on
       } else {
         setName('');
         setCapacity(4);
-        setDescription('');
+        setLocationType('YAMAR');
         setEquipmentString('');
         setImageUrl('');
         setIsAvailable(true);
@@ -61,7 +61,7 @@ const EditRoomModal: React.FC<EditRoomModalProps> = ({ isOpen, onClose, room, on
     onSave({
       name,
       capacity,
-      description,
+      locationType,
       equipment,
       imageUrl: imageUrl || `https://picsum.photos/400/300?random=${Math.floor(Math.random() * 1000)}`,
       isAvailable,
@@ -92,10 +92,10 @@ const EditRoomModal: React.FC<EditRoomModalProps> = ({ isOpen, onClose, room, on
           )}
 
           <div className="flex items-start gap-4 mb-4">
-            <img 
-              src={imageUrl || 'https://via.placeholder.com/150'} 
-              alt="Preview" 
-              className="w-20 h-20 rounded-xl object-cover border border-subtle bg-tertiary" 
+            <img
+              src={imageUrl || 'https://via.placeholder.com/150'}
+              alt="Preview"
+              className="w-20 h-20 rounded-xl object-cover border border-subtle bg-tertiary"
               onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/150')}
             />
             <div className="flex-1">
@@ -129,36 +129,36 @@ const EditRoomModal: React.FC<EditRoomModalProps> = ({ isOpen, onClose, room, on
                 />
               </div>
             </div>
-            
-            <div className="flex flex-col gap-3">
-               <label className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-subtle bg-tertiary cursor-pointer hover:bg-surface transition-colors">
-                  <div className={`w-5 h-5 rounded flex items-center justify-center border ${isAvailable ? 'bg-emerald-500 border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-subtle bg-surface'}`}>
-                    {isAvailable && <X className="text-white rotate-45" size={14} />}
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    checked={isAvailable}
-                    onChange={(e) => setIsAvailable(e.target.checked)}
-                    className="hidden"
-                  />
-                  <span className="text-sm font-semibold text-secondary">זמין להזמנה</span>
-               </label>
 
-               <label className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-subtle bg-tertiary cursor-pointer hover:bg-surface transition-colors">
-                  <div className={`w-5 h-5 rounded flex items-center justify-center border ${isRecorded ? 'bg-brand border-brand shadow-lg shadow-brand/20' : 'border-subtle bg-surface'}`}>
-                    {isRecorded && <X className="text-white rotate-45" size={14} />}
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    checked={isRecorded}
-                    onChange={(e) => setIsRecorded(e.target.checked)}
-                    className="hidden"
-                  />
-                  <span className="text-sm font-semibold text-secondary flex items-center gap-2">
-                    <Video size={14} className={isRecorded ? 'text-brand' : 'text-secondary'} />
-                    מצולם
-                  </span>
-               </label>
+            <div className="flex flex-col gap-3">
+              <label className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-subtle bg-tertiary cursor-pointer hover:bg-surface transition-colors">
+                <div className={`w-5 h-5 rounded flex items-center justify-center border ${isAvailable ? 'bg-emerald-500 border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-subtle bg-surface'}`}>
+                  {isAvailable && <X className="text-white rotate-45" size={14} />}
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isAvailable}
+                  onChange={(e) => setIsAvailable(e.target.checked)}
+                  className="hidden"
+                />
+                <span className="text-sm font-semibold text-secondary">זמין להזמנה</span>
+              </label>
+
+              <label className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-subtle bg-tertiary cursor-pointer hover:bg-surface transition-colors">
+                <div className={`w-5 h-5 rounded flex items-center justify-center border ${isRecorded ? 'bg-brand border-brand shadow-lg shadow-brand/20' : 'border-subtle bg-surface'}`}>
+                  {isRecorded && <X className="text-white rotate-45" size={14} />}
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isRecorded}
+                  onChange={(e) => setIsRecorded(e.target.checked)}
+                  className="hidden"
+                />
+                <span className="text-sm font-semibold text-secondary flex items-center gap-2">
+                  <Video size={14} className={isRecorded ? 'text-brand' : 'text-secondary'} />
+                  מצולם
+                </span>
+              </label>
             </div>
           </div>
 
@@ -177,15 +177,23 @@ const EditRoomModal: React.FC<EditRoomModalProps> = ({ isOpen, onClose, room, on
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-secondary mb-2">מיקום</label>
-            <textarea
-              required
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-subtle bg-tertiary text-primary focus:border-brand focus:ring-4 focus:ring-brand/10 outline-none transition-all resize-none placeholder:text-secondary/50"
-              placeholder="הזמן תיאור מפורט לחדר..."
-            />
+            <label className="block text-sm font-semibold text-secondary mb-2">מתחם</label>
+            <div className="flex bg-tertiary p-1 rounded-xl border border-subtle mb-3">
+              <button
+                type="button"
+                onClick={() => setLocationType('YAMAR')}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${locationType === 'YAMAR' ? 'bg-surface text-primary shadow-sm border border-subtle' : 'text-secondary hover:text-primary'}`}
+              >
+                ימל"ם
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocationType('PRISON')}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${locationType === 'PRISON' ? 'bg-surface text-primary shadow-sm border border-subtle' : 'text-secondary hover:text-primary'}`}
+              >
+                כלא
+              </button>
+            </div>
           </div>
 
           <div>

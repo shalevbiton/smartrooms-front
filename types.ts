@@ -22,7 +22,8 @@ export interface Room {
   capacity: number;
   equipment: string[];
   imageUrl: string;
-  description: string;
+
+  locationType: 'PRISON' | 'YAMAR';
   isAvailable: boolean;
   isRecorded: boolean;
 }
@@ -39,6 +40,7 @@ export interface Booking {
   secondInvestigatorId: string;
   interrogatedName: string;
   offenses: string;
+  type?: 'TESTIMONY' | 'INVESTIGATION';
   description: string;
   startTime: string;
   endTime: string;

@@ -340,7 +340,8 @@ const App: React.FC = () => {
       startTime: startISO,
       endTime: endISO,
       isRecorded: data.isRecorded,
-      phoneNumber: data.phoneNumber
+      phoneNumber: data.phoneNumber,
+      type: data.type
     };
 
     try {
@@ -430,7 +431,7 @@ const App: React.FC = () => {
           capacity: data.capacity || 0,
           equipment: data.equipment || [],
           imageUrl: data.imageUrl || '',
-          description: data.description || '',
+          locationType: data.locationType || 'YAMAR',
           isAvailable: data.isAvailable ?? true,
           isRecorded: data.isRecorded ?? false
         };
@@ -611,7 +612,7 @@ const App: React.FC = () => {
           )}
 
           {currentView === 'rooms' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="space-y-12 animate-in fade-in duration-500">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface/50 p-4 rounded-2xl border border-subtle backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-brand/10 text-brand rounded-xl">
@@ -630,39 +631,100 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                {rooms.map(room => (
-                  <RoomCard
-                    key={room.id}
-                    room={room}
-                    onBook={handleOpenBooking}
-                    isAdmin={isAdmin}
-                    bookings={visibleBookings}
-                    selectedDate={selectedContextDate}
-                    currentUser={currentUser}
-                    onAction={handleBookingAction}
-                    onEdit={(room) => { setRoomToEdit(room); setIsEditRoomModalOpen(true); }}
-                    onDelete={(room) => {
-                      setSafetyModal({
-                        isOpen: true,
-                        title: 'מחיקת חדר מהמערכת',
-                        description: `אתה עומד למחוק את "${room.name}". כל ההזמנות המשויכות לחדר זה יבוטלו.`,
-                        confirmString: room.name,
-                        confirmLabel: 'מחק חדר',
-                        onConfirm: async () => {
-                          try {
-                            await roomsApi.delete(room.id);
-                            setGlobalNotification({ type: 'success', message: 'החדר נמחקה.' });
-                            refreshData();
-                          } catch (e) {
-                            setGlobalNotification({ type: 'error', message: 'מחיקת החדר נכשלה.' });
-                          }
-                          setSafetyModal(prev => ({ ...prev, isOpen: false }));
-                        }
-                      });
-                    }}
-                  />
-                ))}
+              {/* YAMAR Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 border-b border-subtle pb-2">
+                  <h3 className="text-xl font-black text-primary">מתחם ימל"ם</h3>
+                  <span className="text-xs font-medium text-secondary bg-surface border border-subtle px-2 py-0.5 rounded-full">
+                    {rooms.filter(r => (r.locationType || 'YAMAR') === 'YAMAR').length} חדרים
+                  </span>
+                </div>
+                {rooms.filter(r => (r.locationType || 'YAMAR') === 'YAMAR').length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {rooms.filter(r => (r.locationType || 'YAMAR') === 'YAMAR').map(room => (
+                      <RoomCard
+                        key={room.id}
+                        room={room}
+                        onBook={handleOpenBooking}
+                        isAdmin={isAdmin}
+                        bookings={visibleBookings}
+                        selectedDate={selectedContextDate}
+                        currentUser={currentUser}
+                        onAction={handleBookingAction}
+                        onEdit={(room) => { setRoomToEdit(room); setIsEditRoomModalOpen(true); }}
+                        onDelete={(room) => {
+                          setSafetyModal({
+                            isOpen: true,
+                            title: 'מחיקת חדר מהמערכת',
+                            description: `אתה עומד למחוק את "${room.name}". כל ההזמנות המשויכות לחדר זה יבוטלו.`,
+                            confirmString: room.name,
+                            confirmLabel: 'מחק חדר',
+                            onConfirm: async () => {
+                              try {
+                                await roomsApi.delete(room.id);
+                                setGlobalNotification({ type: 'success', message: 'החדר נמחקה.' });
+                                refreshData();
+                              } catch (e) {
+                                setGlobalNotification({ type: 'error', message: 'מחיקת החדר נכשלה.' });
+                              }
+                              setSafetyModal(prev => ({ ...prev, isOpen: false }));
+                            }
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-secondary text-sm italic">אין חדרים זמינים במתחם זה.</p>
+                )}
+              </div>
+
+              {/* PRISON Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 border-b border-subtle pb-2 mt-8">
+                  <h3 className="text-xl font-black text-primary">מתחם כלא</h3>
+                  <span className="text-xs font-medium text-secondary bg-surface border border-subtle px-2 py-0.5 rounded-full">
+                    {rooms.filter(r => r.locationType === 'PRISON').length} חדרים
+                  </span>
+                </div>
+                {rooms.filter(r => r.locationType === 'PRISON').length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {rooms.filter(r => r.locationType === 'PRISON').map(room => (
+                      <RoomCard
+                        key={room.id}
+                        room={room}
+                        onBook={handleOpenBooking}
+                        isAdmin={isAdmin}
+                        bookings={visibleBookings}
+                        selectedDate={selectedContextDate}
+                        currentUser={currentUser}
+                        onAction={handleBookingAction}
+                        onEdit={(room) => { setRoomToEdit(room); setIsEditRoomModalOpen(true); }}
+                        onDelete={(room) => {
+                          setSafetyModal({
+                            isOpen: true,
+                            title: 'מחיקת חדר מהמערכת',
+                            description: `אתה עומד למחוק את "${room.name}". כל ההזמנות המשויכות לחדר זה יבוטלו.`,
+                            confirmString: room.name,
+                            confirmLabel: 'מחק חדר',
+                            onConfirm: async () => {
+                              try {
+                                await roomsApi.delete(room.id);
+                                setGlobalNotification({ type: 'success', message: 'החדר נמחקה.' });
+                                refreshData();
+                              } catch (e) {
+                                setGlobalNotification({ type: 'error', message: 'מחיקת החדר נכשלה.' });
+                              }
+                              setSafetyModal(prev => ({ ...prev, isOpen: false }));
+                            }
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-secondary text-sm italic">אין חדרים זמינים במתחם זה.</p>
+                )}
               </div>
             </div>
           )}
