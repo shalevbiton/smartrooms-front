@@ -19,6 +19,7 @@ import { Room, Booking, User } from './types';
 import { Menu, CheckCircle, AlertTriangle, Loader2, Sun, Moon, Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
 
 const App: React.FC = () => {
+  // Frontend Version 1.0.1 (Force Redeploy)
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [users, setUsers] = useState<User[]>([]);
