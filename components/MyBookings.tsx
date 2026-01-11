@@ -95,9 +95,10 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     }
   };
 
-  const handleExportBookings = () => {
-    const csv = convertToCSV(viewType === 'schedule' ? dailyBookings : filteredBookings, rooms);
-    const fileName = viewType === 'schedule' ? `bookings_day_${selectedDate}.csv` : `all_bookings.csv`;
+  const handleExportBookings = (type?: 'daily' | 'all') => {
+    const exportType = type || (viewType === 'schedule' ? 'daily' : 'all');
+    const csv = convertToCSV(exportType === 'daily' ? dailyBookings : filteredBookings, rooms);
+    const fileName = exportType === 'daily' ? `bookings_day_${selectedDate}.csv` : `all_bookings.csv`;
     downloadFile(csv, fileName, 'text/csv;charset=utf-8;');
   };
 
@@ -139,7 +140,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
             </p>
           </div>
           {isAdmin && (
-            <button onClick={handleExportBookings} className="flex md:hidden items-center justify-center p-2.5 bg-brand text-white rounded-xl shadow-lg active:scale-95">
+            <button onClick={() => handleExportBookings()} className="flex md:hidden items-center justify-center p-2.5 bg-brand text-white rounded-xl shadow-lg active:scale-95">
               <FileSpreadsheet size={18} />
             </button>
           )}
@@ -153,6 +154,16 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
               </button>
               <button onClick={() => setViewType('list')} className={`flex-1 md:flex-none md:px-6 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] md:text-xs font-black rounded-lg transition-all ${viewType === 'list' ? 'bg-surface text-brand shadow-sm' : 'text-secondary'}`}>
                 <LayoutList size={14} /> רשימת הזמנות
+              </button>
+            </div>
+
+            <div className="flex bg-tertiary p-1 rounded-xl border border-subtle hidden md:flex">
+              <button onClick={() => handleExportBookings('daily')} className="px-4 flex items-center justify-center gap-1.5 py-2 text-xs font-black rounded-lg transition-all text-secondary hover:bg-surface hover:text-primary hover:shadow-sm">
+                <Calendar size={14} /> ייצוא יומי
+              </button>
+              <div className="w-px bg-subtle/50 my-1"></div>
+              <button onClick={() => handleExportBookings('all')} className="px-4 flex items-center justify-center gap-1.5 py-2 text-xs font-black rounded-lg transition-all text-secondary hover:bg-surface hover:text-primary hover:shadow-sm">
+                <FileSpreadsheet size={14} /> ייצוא מלא
               </button>
             </div>
 
@@ -415,53 +426,55 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
         </div>
       )}
 
-      {actionBookingId && onAction && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-surface w-full max-w-md rounded-3xl p-6 shadow-2xl border border-subtle animate-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center">
-                <ShieldAlert size={32} />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-primary">ביטול הזמנה</h3>
-                <p className="text-secondary font-medium mt-1">כיצד תרצה לטפל בהזמנה זו?</p>
-              </div>
+      {
+        actionBookingId && onAction && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-surface w-full max-w-md rounded-3xl p-6 shadow-2xl border border-subtle animate-in zoom-in-95 duration-200">
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center">
+                  <ShieldAlert size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-primary">ביטול הזמנה</h3>
+                  <p className="text-secondary font-medium mt-1">כיצד תרצה לטפל בהזמנה זו?</p>
+                </div>
 
-              <div className="w-full space-y-3 mt-4">
+                <div className="w-full space-y-3 mt-4">
+                  <button
+                    onClick={() => {
+                      onAction(actionBookingId, 'CANCEL');
+                      setActionBookingId(null);
+                    }}
+                    className="w-full py-4 bg-tertiary hover:bg-tertiary/80 text-primary border border-subtle rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
+                  >
+                    <X size={18} />
+                    בטל בלבד (שמור בהיסטוריה)
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onAction(actionBookingId, 'DELETE');
+                      setActionBookingId(null);
+                    }}
+                    className="w-full py-4 bg-red-500 text-white hover:bg-red-600 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 transition-all"
+                  >
+                    <Trash2 size={18} />
+                    מחק הזמנה לצמיתות
+                  </button>
+                </div>
+
                 <button
-                  onClick={() => {
-                    onAction(actionBookingId, 'CANCEL');
-                    setActionBookingId(null);
-                  }}
-                  className="w-full py-4 bg-tertiary hover:bg-tertiary/80 text-primary border border-subtle rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
+                  onClick={() => setActionBookingId(null)}
+                  className="text-sm font-bold text-secondary hover:text-primary mt-2"
                 >
-                  <X size={18} />
-                  בטל בלבד (שמור בהיסטוריה)
-                </button>
-
-                <button
-                  onClick={() => {
-                    onAction(actionBookingId, 'DELETE');
-                    setActionBookingId(null);
-                  }}
-                  className="w-full py-4 bg-red-500 text-white hover:bg-red-600 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 transition-all"
-                >
-                  <Trash2 size={18} />
-                  מחק הזמנה לצמיתות
+                  חזור
                 </button>
               </div>
-
-              <button
-                onClick={() => setActionBookingId(null)}
-                className="text-sm font-bold text-secondary hover:text-primary mt-2"
-              >
-                חזור
-              </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
