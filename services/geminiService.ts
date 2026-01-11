@@ -5,12 +5,11 @@ import { Room } from "../types";
 export const parseBookingRequest = async (userPrompt: string, rooms: Room[]) => {
   // Fix: Initializing GoogleGenAI directly with process.env.API_KEY as per the library guidelines
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+
   const roomsContext = rooms.map(r => ({
     id: r.id,
     name: r.name,
-    capacity: r.capacity,
-    description: r.description
+    capacity: r.capacity
   }));
 
   const systemInstruction = `
