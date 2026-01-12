@@ -735,6 +735,7 @@ const App: React.FC = () => {
               bookings={visibleBookings}
               rooms={rooms}
               currentUserId={currentUser.id}
+              users={users}
               isAdmin={isAdmin}
               onAction={handleBookingAction}
               onBookRoom={handleOpenBooking}

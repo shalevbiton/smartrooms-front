@@ -109,3 +109,36 @@ export const convertUsersToCSV = (users: User[]) => {
 
   return [header, ...rows].join('\n');
 };
+/**
+ * Copies the bookings to clipboard in a specific format
+ */
+export const copyBookingsToClipboard = async (bookings: Booking[], rooms: Room[], users?: User[]) => {
+  const content = bookings.map(b => {
+    const room = rooms.find(r => r.id === b.roomId);
+    const user = users?.find(u => u.id === b.userId);
+
+    const startTime = new Date(b.startTime);
+    const endTime = new Date(b.endTime);
+
+    return `
+שם החדר: ${room?.name || 'לא ידוע'}
+תאריך: ${startTime.toLocaleDateString('he-IL')}
+שעות: ${startTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+מוקלט: ${b.isRecorded ? 'כן' : 'לא'}
+מקום: ${room?.locationType === 'PRISON' ? 'מתחם כלא' : 'ימל"ם'}
+בסיס: ${user?.base || 'לא ידוע'}
+שם החוקר: ${b.title}
+מספר אישי חוקר: ${b.investigatorId}
+שם הנחקר: ${b.interrogatedName}
+ת"ז/מ"א נחקר: ${b.secondInvestigatorId}
+`.trim();
+  }).join('\n\n----------------------------------------\n\n');
+
+  try {
+    await navigator.clipboard.writeText(content);
+    return true;
+  } catch (err) {
+    console.error('Failed to copy: ', err);
+    return false;
+  }
+};

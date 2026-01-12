@@ -8,7 +8,7 @@ import {
   ChevronDown, Download, CalendarDays, ArrowLeftRight
 } from 'lucide-react';
 import { Booking, Room, User } from '../types';
-import { downloadFile, convertToCSV } from '../utils/downloadUtils';
+import { copyBookingsToClipboard } from '../utils/downloadUtils';
 
 interface AdminDashboardProps {
   bookings: Booking[];
@@ -67,7 +67,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const getRoom = (id: string) => rooms.find(r => r.id === id);
   const formatDate = (isoStr: string) => new Date(isoStr).toLocaleDateString('he-IL', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  const handleExportCSV = (range: 'all' | 'today' | 'yesterday' | 'week' | 'custom') => {
+  const handleExportCSV = async (range: 'all' | 'today' | 'yesterday' | 'week' | 'custom') => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
@@ -106,9 +106,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       fileNamePrefix = `date_${customExportDate}`;
     }
 
-    const csvContent = convertToCSV(filteredForExport, rooms);
-    const dateStr = new Date().toISOString().split('T')[0];
-    downloadFile(csvContent, `smartroom_${fileNamePrefix}_${dateStr}.csv`, 'text/csv;charset=utf-8;');
+    const success = await copyBookingsToClipboard(filteredForExport, rooms, users);
+    if (success) {
+      alert('הנתונים הועתקו ללוח בהצלחה!');
+    } else {
+      alert('שגיאה בהעתקת הנתונים.');
+    }
     setIsExportMenuOpen(false);
   };
 
@@ -159,7 +162,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
               className="flex items-center gap-2 px-4 py-3 bg-surface border border-subtle rounded-2xl text-xs font-black text-primary hover:text-brand hover:border-brand transition-all shadow-sm active:scale-95"
             >
-              <FileSpreadsheet size={16} /> ייצוא נתונים
+              <FileSpreadsheet size={16} /> העתק נתונים ללוח
               <ChevronDown size={14} className={`transition-transform duration-200 ${isExportMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -204,7 +207,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       : 'bg-tertiary text-secondary cursor-not-allowed opacity-50'
                       }`}
                   >
-                    <Download size={14} /> ייצא תאריך נבחר
+                    <Download size={14} /> העתק תאריך נבחר
                   </button>
                 </div>
 

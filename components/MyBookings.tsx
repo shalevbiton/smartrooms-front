@@ -7,14 +7,15 @@ import {
   ChevronRight, ChevronLeft, ExternalLink, FileSpreadsheet,
   Maximize2, Filter, FilterX, Eye, EyeOff, AlertTriangle, ShieldAlert
 } from 'lucide-react';
-import { Booking, Room } from '../types';
+import { Booking, Room, User } from '../types';
 
-import { downloadFile, generateBookingSummary, convertToCSV } from '../utils/downloadUtils';
+import { copyBookingsToClipboard } from '../utils/downloadUtils';
 
 interface MyBookingsProps {
   bookings: Booking[];
   rooms: Room[];
   currentUserId: string;
+  users?: User[];
   isAdmin?: boolean;
   onAction?: (id: string, type: 'CANCEL' | 'CHECKOUT' | 'DELETE') => void;
   onBookRoom?: (room: Room, startTime?: string) => void;
@@ -32,7 +33,7 @@ const BOOKING_VARS = [
   '--booking-21', '--booking-22', '--booking-23', '--booking-24',
 ];
 
-const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId, isAdmin = false, onAction, onBookRoom }) => {
+const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId, users, isAdmin = false, onAction, onBookRoom }) => {
   const [viewType, setViewType] = useState<'list' | 'schedule'>('list');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
   const [videoMap, setVideoMap] = useState<Record<string, string | null>>({});
@@ -95,11 +96,18 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     }
   };
 
-  const handleExportBookings = (type?: 'daily' | 'all') => {
+  const handleExportBookings = async (type?: 'daily' | 'all') => {
     const exportType = type || (viewType === 'schedule' ? 'daily' : 'all');
-    const csv = convertToCSV(exportType === 'daily' ? dailyBookings : filteredBookings, rooms);
-    const fileName = exportType === 'daily' ? `bookings_day_${selectedDate}.csv` : `all_bookings.csv`;
-    downloadFile(csv, fileName, 'text/csv;charset=utf-8;');
+    const bookingsToExport = exportType === 'daily' ? dailyBookings : filteredBookings;
+
+    // Copy to clipboard instead of downloading CSV
+    const success = await copyBookingsToClipboard(bookingsToExport, rooms, users);
+
+    if (success) {
+      alert('הנתונים הועתקו ללוח בהצלחה!');
+    } else {
+      alert('שגיאה בהעתקת הנתונים.');
+    }
   };
 
   const getBookingForSlot = (roomId: string, hour: number) => {
@@ -159,11 +167,11 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
 
             <div className="flex bg-tertiary p-1 rounded-xl border border-subtle hidden md:flex">
               <button onClick={() => handleExportBookings('daily')} className="px-4 flex items-center justify-center gap-1.5 py-2 text-xs font-black rounded-lg transition-all text-secondary hover:bg-surface hover:text-primary hover:shadow-sm">
-                <Calendar size={14} /> ייצוא יומי
+                <Calendar size={14} /> העתק יומי
               </button>
               <div className="w-px bg-subtle/50 my-1"></div>
               <button onClick={() => handleExportBookings('all')} className="px-4 flex items-center justify-center gap-1.5 py-2 text-xs font-black rounded-lg transition-all text-secondary hover:bg-surface hover:text-primary hover:shadow-sm">
-                <FileSpreadsheet size={14} /> ייצוא מלא
+                <FileSpreadsheet size={14} /> העתק הכל
               </button>
             </div>
 
