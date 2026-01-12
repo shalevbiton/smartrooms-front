@@ -123,7 +123,18 @@ export const generateBookingsClipboardText = (bookings: Booking[], rooms: Room[]
     const startTime = new Date(b.startTime);
     const endTime = new Date(b.endTime);
 
+    const getStatusText = (status: string) => {
+      switch (status) {
+        case 'APPROVED': return 'מאושר';
+        case 'REJECTED': return 'סורב';
+        case 'CANCELLED': return 'בוטל';
+        case 'COMPLETED': return 'הושלם';
+        default: return 'ממתין';
+      }
+    };
+
     return `
+סטטוס: ${getStatusText(b.status)}
 שם החדר: ${room?.name || 'לא ידוע'}
 תאריך: ${startTime.toLocaleDateString('he-IL')}
 שעות: ${startTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
