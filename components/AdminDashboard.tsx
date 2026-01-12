@@ -66,12 +66,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const activeBookingsCount = bookings.filter(b => b.status === 'APPROVED').length;
   const totalUsersCount = users.filter(u => u.status === 'APPROVED').length;
 
-  const filteredBookings = pendingBookings.filter(b =>
-    b.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.offenses.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.interrogatedName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getStatusPriority = (status: string) => {
+    switch (status) {
+      case 'APPROVED': return 1;
+      case 'PENDING': return 2;
+      case 'REJECTED': return 3;
+      case 'CANCELLED': return 3;
+      default: return 3;
+    }
+  };
+
+  const filteredBookings = bookings
+    .filter(b =>
+      b.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.offenses.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.interrogatedName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const priorityA = getStatusPriority(a.status);
+      const priorityB = getStatusPriority(b.status);
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+    });
 
   const filteredUsers = pendingUsers.filter(u =>
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -305,7 +322,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                           <div>
                             <h4 className="text-xs font-black text-secondary uppercase tracking-widest">מיקום החקירה</h4>
-                            <p className="text-lg font-black text-primary leading-tight">{room?.name || 'חדר לא ידוע'}</p>
+                            <div>
+                              <p className="text-lg font-black text-primary leading-tight">{room?.name || 'חדר לא ידוע'}</p>
+                              {room?.locationType && <p className="text-xs font-bold text-secondary mt-0.5">{room.locationType}</p>}
+                            </div>
                           </div>
                         </div>
 
@@ -376,19 +396,35 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
 
                         <div className="flex gap-3 w-full sm:w-auto">
-                          <button
-                            onClick={() => setRejectingBookingId(booking.id)}
-                            className="flex-1 sm:flex-none px-6 py-2.5 text-sm font-black text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition-all"
-                          >
-                            דחה בקשה
-                          </button>
-                          <button
-                            onClick={() => onApprove(booking.id)}
-                            className="flex-1 sm:flex-none px-8 py-2.5 text-sm font-black text-white bg-brand hover:bg-brand-hover rounded-xl transition-all shadow-lg shadow-brand/20 active:scale-95 flex items-center justify-center gap-2"
-                          >
-                            <Check size={18} />
-                            אשר הזמנה
-                          </button>
+                          {booking.status === 'PENDING' && (
+                            <>
+                              <button
+                                onClick={() => setRejectingBookingId(booking.id)}
+                                className="flex-1 sm:flex-none px-6 py-2.5 text-sm font-black text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition-all"
+                              >
+                                דחה בקשה
+                              </button>
+                              <button
+                                onClick={() => onApprove(booking.id)}
+                                className="flex-1 sm:flex-none px-8 py-2.5 text-sm font-black text-white bg-brand hover:bg-brand-hover rounded-xl transition-all shadow-lg shadow-brand/20 active:scale-95 flex items-center justify-center gap-2"
+                              >
+                                <Check size={18} />
+                                אשר הזמנה
+                              </button>
+                            </>
+                          )}
+                          {booking.status === 'APPROVED' && (
+                            <div className="px-6 py-2.5 bg-emerald-100 text-emerald-700 rounded-xl font-black border border-emerald-200 flex items-center gap-2">
+                              <Check size={18} />
+                              <span>הזמנה מאושרת</span>
+                            </div>
+                          )}
+                          {(booking.status === 'REJECTED' || booking.status === 'CANCELLED') && (
+                            <div className="px-6 py-2.5 bg-red-100 text-red-700 rounded-xl font-black border border-red-200 flex items-center gap-2">
+                              <X size={18} />
+                              <span>{booking.status === 'REJECTED' ? 'הזמנה נדחתה' : 'הזמנה בוטלה'}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -402,8 +438,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="w-16 h-16 bg-surface rounded-3xl flex items-center justify-center mx-auto mb-4 text-secondary shadow-sm border border-subtle">
                   <FileText size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-primary">אין בקשות ממתינות</h3>
-                <p className="text-secondary mt-1 font-medium">נראה שכל הבקשות טופלו בהצלחה.</p>
+                <h3 className="text-xl font-bold text-primary">לא נמצאו הזמנות</h3>
+                <p className="text-secondary mt-1 font-medium">נסה לשנות את הסינון או החיפוש.</p>
               </div>
             )}
           </div>
