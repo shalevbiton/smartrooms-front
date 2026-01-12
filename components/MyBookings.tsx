@@ -9,7 +9,9 @@ import {
 } from 'lucide-react';
 import { Booking, Room, User } from '../types';
 
-import { copyBookingsToClipboard } from '../utils/downloadUtils';
+import { generateBookingsClipboardText } from '../utils/downloadUtils';
+import { Copy } from 'lucide-react';
+
 
 interface MyBookingsProps {
   bookings: Booking[];
@@ -40,6 +42,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAllRoomsInSchedule, setShowAllRoomsInSchedule] = useState(false);
   const [actionBookingId, setActionBookingId] = useState<string | null>(null);
+  const [previewText, setPreviewText] = useState<string | null>(null);
 
   const getBookingColorVar = (bookingId: string) => {
     let hash = 0;
@@ -96,16 +99,22 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     }
   };
 
-  const handleExportBookings = async (type?: 'daily' | 'all') => {
+  const handleExportBookings = (type?: 'daily' | 'all') => {
     const exportType = type || (viewType === 'schedule' ? 'daily' : 'all');
     const bookingsToExport = exportType === 'daily' ? dailyBookings : filteredBookings;
 
-    // Copy to clipboard instead of downloading CSV
-    const success = await copyBookingsToClipboard(bookingsToExport, rooms, users);
+    const text = generateBookingsClipboardText(bookingsToExport, rooms, users);
+    setPreviewText(text);
+  };
 
-    if (success) {
+  const handleCopyFromPreview = async () => {
+    if (!previewText) return;
+    try {
+      await navigator.clipboard.writeText(previewText);
       alert('הנתונים הועתקו ללוח בהצלחה!');
-    } else {
+      setPreviewText(null);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
       alert('שגיאה בהעתקת הנתונים.');
     }
   };
@@ -489,6 +498,52 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
           </div>
         )
       }
+
+      {previewText !== null && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-surface w-full max-w-2xl rounded-3xl p-6 shadow-2xl border border-subtle animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-brand/10 text-brand rounded-2xl flex items-center justify-center">
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-primary">תצוגה מקדימה להעתקה</h3>
+                  <p className="text-secondary text-sm font-medium">בדוק את הנתונים לפני ההעתקה</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewText(null)}
+                className="p-2 text-secondary hover:bg-tertiary rounded-xl transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 bg-tertiary/50 rounded-2xl p-4 border border-subtle overflow-y-auto mb-6">
+              <pre className="text-xs md:text-sm font-mono text-primary whitespace-pre-wrap dir-rtl text-right">
+                {previewText}
+              </pre>
+            </div>
+
+            <div className="flex gap-3 shrink-0">
+              <button
+                onClick={() => setPreviewText(null)}
+                className="flex-1 py-3 text-secondary hover:bg-tertiary rounded-xl font-bold transition-all border border-transparent hover:border-subtle"
+              >
+                ביטול
+              </button>
+              <button
+                onClick={handleCopyFromPreview}
+                className="flex-[2] py-3 bg-brand text-white hover:bg-brand-hover rounded-xl font-black shadow-lg shadow-brand/20 transition-all flex items-center justify-center gap-2"
+              >
+                <Copy size={18} />
+                העתק ללוח וסגור
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 };

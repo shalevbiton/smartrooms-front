@@ -112,8 +112,11 @@ export const convertUsersToCSV = (users: User[]) => {
 /**
  * Copies the bookings to clipboard in a specific format
  */
-export const copyBookingsToClipboard = async (bookings: Booking[], rooms: Room[], users?: User[]) => {
-  const content = bookings.map(b => {
+/**
+ * Generates the formatted text for clipboard
+ */
+export const generateBookingsClipboardText = (bookings: Booking[], rooms: Room[], users?: User[]) => {
+  return bookings.map(b => {
     const room = rooms.find(r => r.id === b.roomId);
     const user = users?.find(u => u.id === b.userId);
 
@@ -133,6 +136,13 @@ export const copyBookingsToClipboard = async (bookings: Booking[], rooms: Room[]
 ת"ז/מ"א נחקר: ${b.secondInvestigatorId}
 `.trim();
   }).join('\n\n----------------------------------------\n\n');
+};
+
+/**
+ * Copies the bookings to clipboard in a specific format
+ */
+export const copyBookingsToClipboard = async (bookings: Booking[], rooms: Room[], users?: User[]) => {
+  const content = generateBookingsClipboardText(bookings, rooms, users);
 
   try {
     await navigator.clipboard.writeText(content);
