@@ -99,7 +99,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const getRoom = (id: string) => rooms.find(r => r.id === id);
   const formatDate = (isoStr: string) => new Date(isoStr).toLocaleDateString('he-IL', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  const handleExportCSV = async (range: 'all' | 'today' | 'yesterday' | 'week' | 'custom') => {
+  const handleExportCSV = async (range: 'all' | 'today' | 'tomorrow' | 'yesterday' | 'week' | 'custom') => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
@@ -122,6 +122,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         return bDate.getTime() === yesterday.getTime();
       });
       fileNamePrefix = 'yesterday';
+    } else if (range === 'tomorrow') {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      filteredForExport = bookings.filter(b => {
+        const bDate = new Date(b.startTime);
+        bDate.setHours(0, 0, 0, 0);
+        return bDate.getTime() === tomorrow.getTime();
+      });
+      fileNamePrefix = 'tomorrow';
     } else if (range === 'week') {
       const weekAgo = new Date(now);
       weekAgo.setDate(now.getDate() - 7);
@@ -230,9 +239,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <p className="text-[10px] font-black text-secondary uppercase tracking-widest px-1">טווחים מהירים</p>
                 </div>
                 <div className="p-1 space-y-0.5">
+                </div>
+                <div className="p-1 space-y-0.5">
                   <button onClick={() => handleExportCSV('today')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
                     היום
                     <Calendar size={14} className="opacity-50" />
+                  </button>
+                  <button onClick={() => handleExportCSV('tomorrow')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
+                    מחר
+                    <CalendarDays size={14} className="opacity-50" />
                   </button>
                   <button onClick={() => handleExportCSV('yesterday')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
                     אתמול
