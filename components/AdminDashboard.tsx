@@ -324,7 +324,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <h4 className="text-xs font-black text-secondary uppercase tracking-widest">מיקום החקירה</h4>
                             <div>
                               <p className="text-lg font-black text-primary leading-tight">{room?.name || 'חדר לא ידוע'}</p>
-                              {room?.locationType && <p className="text-xs font-bold text-secondary mt-0.5">{room.locationType}</p>}
+                              {room?.locationType && <p className="text-xs font-bold text-secondary mt-0.5">{room.locationType === 'PRISON' ? 'כלא' : 'ימל"ם'}</p>}
                             </div>
                           </div>
                         </div>
@@ -380,9 +380,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="flex items-center gap-2 text-[10px] font-black text-brand uppercase tracking-widest bg-brand/5 w-fit px-3 py-1 rounded-full border border-brand/20">
                             <ShieldAlert size={12} /> פרטי התיק
                           </div>
-                          <div className="bg-tertiary/30 p-3 rounded-2xl border border-subtle">
-                            <p className="text-[10px] font-bold text-secondary mb-1">סוג העבירה:</p>
-                            <p className="text-sm font-black text-primary leading-tight">{booking.offenses}</p>
+                          <div className="bg-tertiary/30 p-3 rounded-2xl border border-subtle grid grid-cols-2 gap-2">
+                            <div>
+                              <p className="text-[10px] font-bold text-secondary mb-1">סוג התיק:</p>
+                              <p className="text-sm font-black text-primary leading-tight">
+                                {booking.type === 'TESTIMONY' ? 'עדות' : 'חקירה'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold text-secondary mb-1">סוג העבירה:</p>
+                              <p className="text-sm font-black text-primary leading-tight">{booking.offenses}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
