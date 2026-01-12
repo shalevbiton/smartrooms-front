@@ -43,6 +43,8 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
   const [showAllRoomsInSchedule, setShowAllRoomsInSchedule] = useState(false);
   const [actionBookingId, setActionBookingId] = useState<string | null>(null);
   const [previewText, setPreviewText] = useState<string | null>(null);
+  const [pendingExportBookings, setPendingExportBookings] = useState<Booking[] | null>(null);
+  const [filterApprovedOnly, setFilterApprovedOnly] = useState(false);
 
   const getBookingColorVar = (bookingId: string) => {
     let hash = 0;
@@ -99,12 +101,23 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     }
   };
 
+  useEffect(() => {
+    if (pendingExportBookings) {
+      const filtered = filterApprovedOnly
+        ? pendingExportBookings.filter(b => b.status === 'APPROVED')
+        : pendingExportBookings;
+
+      const text = generateBookingsClipboardText(filtered, rooms, users);
+      setPreviewText(text);
+    }
+  }, [pendingExportBookings, filterApprovedOnly, rooms, users]);
+
   const handleExportBookings = (type?: 'daily' | 'all') => {
     const exportType = type || (viewType === 'schedule' ? 'daily' : 'all');
     const bookingsToExport = exportType === 'daily' ? dailyBookings : filteredBookings;
 
-    const text = generateBookingsClipboardText(bookingsToExport, rooms, users);
-    setPreviewText(text);
+    setFilterApprovedOnly(false);
+    setPendingExportBookings(bookingsToExport);
   };
 
   const handleCopyFromPreview = async () => {
@@ -113,6 +126,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
       await navigator.clipboard.writeText(previewText);
       alert('הנתונים הועתקו ללוח בהצלחה!');
       setPreviewText(null);
+      setPendingExportBookings(null);
     } catch (err) {
       console.error('Failed to copy: ', err);
       alert('שגיאה בהעתקת הנתונים.');
@@ -517,6 +531,21 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                 className="p-2 text-secondary hover:bg-tertiary rounded-xl transition-all"
               >
                 <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex gap-2 mb-4 px-4">
+              <button
+                onClick={() => setFilterApprovedOnly(false)}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all border ${!filterApprovedOnly ? 'bg-brand text-white border-brand shadow-lg shadow-brand/20' : 'bg-surface text-secondary border-subtle hover:bg-tertiary'}`}
+              >
+                הכל
+              </button>
+              <button
+                onClick={() => setFilterApprovedOnly(true)}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all border ${filterApprovedOnly ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-surface text-secondary border-subtle hover:bg-tertiary'}`}
+              >
+                רק מאושרים
               </button>
             </div>
 

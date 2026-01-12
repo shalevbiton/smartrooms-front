@@ -36,7 +36,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [customExportDate, setCustomExportDate] = useState('');
   const [rejectingBookingId, setRejectingBookingId] = useState<string | null>(null);
   const [previewText, setPreviewText] = useState<string | null>(null);
+  const [pendingExportBookings, setPendingExportBookings] = useState<Booking[] | null>(null);
+  const [filterApprovedOnly, setFilterApprovedOnly] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (pendingExportBookings) {
+      const filtered = filterApprovedOnly
+        ? pendingExportBookings.filter(b => b.status === 'APPROVED')
+        : pendingExportBookings;
+
+      const text = generateBookingsClipboardText(filtered, rooms, users);
+      setPreviewText(text);
+    }
+  }, [pendingExportBookings, filterApprovedOnly, rooms, users]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -108,8 +121,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       fileNamePrefix = `date_${customExportDate}`;
     }
 
+    setFilterApprovedOnly(false);
+    setPendingExportBookings(filteredForExport);
+    // Initial text generation will be triggered by useEffect
+    // But we need to set a non-null previewText to open the modal if we rely on previewText!==null
+    // So we can set a dummy text or let useEffect handle it.
+    // To conform to previous logic where modal opens if previewText !== null, 
+    // we should set initial text here as well or use another state for modal visibility.
+    // However, useEffect runs after render. If we set pendingExportBookings, the effect will run.
+    // But we need previewText to be not null to render.
+    // Let's manually set the initial text here too to avoid flicker/logic issues.
+
+    // Actually, let's just use the effect. But we need to open the modal.
+    // Let's set previewText to "loading..." or the actual initial text.
     const text = generateBookingsClipboardText(filteredForExport, rooms, users);
     setPreviewText(text);
+
     setIsExportMenuOpen(false);
   };
 
@@ -119,6 +146,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       await navigator.clipboard.writeText(previewText);
       alert('הנתונים הועתקו ללוח בהצלחה!');
       setPreviewText(null);
+      setPendingExportBookings(null);
     } catch (err) {
       console.error('Failed to copy: ', err);
       alert('שגיאה בהעתקת הנתונים.');
@@ -558,6 +586,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="p-2 text-secondary hover:bg-tertiary rounded-xl transition-all"
               >
                 <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex gap-2 mb-4 px-4">
+              <button
+                onClick={() => setFilterApprovedOnly(false)}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all border ${!filterApprovedOnly ? 'bg-brand text-white border-brand shadow-lg shadow-brand/20' : 'bg-surface text-secondary border-subtle hover:bg-tertiary'}`}
+              >
+                הכל
+              </button>
+              <button
+                onClick={() => setFilterApprovedOnly(true)}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all border ${filterApprovedOnly ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-surface text-secondary border-subtle hover:bg-tertiary'}`}
+              >
+                רק מאושרים
               </button>
             </div>
 
