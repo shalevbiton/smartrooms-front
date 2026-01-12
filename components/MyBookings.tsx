@@ -70,11 +70,26 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     return BOOKING_VARS[Math.abs(hash) % BOOKING_VARS.length];
   };
 
+  const getStatusPriority = (status: string) => {
+    switch (status) {
+      case 'APPROVED': return 1;
+      case 'PENDING': return 2;
+      case 'REJECTED': return 3;
+      case 'CANCELLED': return 3;
+      default: return 3;
+    }
+  };
+
   const filteredBookings = useMemo(() => {
     return bookings.filter(b => {
       if (!isAdmin && b.userId !== currentUserId) return false;
       return true;
-    }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+    }).sort((a, b) => {
+      const priorityA = getStatusPriority(a.status);
+      const priorityB = getStatusPriority(b.status);
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+    });
   }, [bookings, isAdmin, currentUserId]);
 
   const dailyBookings = useMemo(() => {
@@ -359,7 +374,9 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                           </div>
                           <p className="text-xs text-secondary flex items-center gap-1.5 mt-1 font-medium">
                             <MapPin size={12} className="text-brand" />
-                            {room?.name} | {new Date(booking.startTime).toLocaleDateString('he-IL')}
+                            {room?.name}
+                            {room?.locationType && <span className="opacity-75">({room.locationType === 'PRISON' ? 'כלא' : 'ימל"ם'})</span>}
+                            | {new Date(booking.startTime).toLocaleDateString('he-IL')}
                           </p>
                         </div>
                       </div>
