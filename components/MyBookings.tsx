@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Calendar, Clock, MapPin, Trash2, LogOut,
   Video, Play, X, ChevronDown, ChevronUp,
   Phone, Users, FileText, Download, LayoutList, Grid3X3,
   ChevronRight, ChevronLeft, ExternalLink, FileSpreadsheet,
-  Maximize2, Filter, FilterX, Eye, EyeOff, AlertTriangle, ShieldAlert
+  Maximize2, Filter, FilterX, Eye, EyeOff, AlertTriangle, ShieldAlert,
+  CalendarDays, ArrowLeftRight
 } from 'lucide-react';
 import { Booking, Room, User } from '../types';
 
@@ -45,6 +46,19 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [pendingExportBookings, setPendingExportBookings] = useState<Booking[] | null>(null);
   const [filterApprovedOnly, setFilterApprovedOnly] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const [customExportDate, setCustomExportDate] = useState('');
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const getBookingColorVar = (bookingId: string) => {
     let hash = 0;
@@ -112,15 +126,54 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     }
   }, [pendingExportBookings, filterApprovedOnly, rooms, users]);
 
-  const handleExportBookings = (type?: 'daily' | 'all') => {
-    const exportType = type || (viewType === 'schedule' ? 'daily' : 'all');
-    const bookingsToExport = exportType === 'daily' ? dailyBookings : filteredBookings;
+  const handleExportBookings = async (range: 'all' | 'today' | 'yesterday' | 'week' | 'custom' | 'daily' = 'all') => {
+    // Note: 'daily' is kept for backward compatibility if needed, but we'll map it to 'today' or use logic below
+
+    // If user clicked the button on mobile which passes no arg, or the old buttons
+    if (range === 'daily') range = 'today';
+
+    const bookingsSource = filteredBookings; // Use current view's bookings (admin sees all relevant, user sees theirs)
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    let bookingsToExport = [...bookingsSource];
+
+    if (range === 'today') {
+      bookingsToExport = bookingsSource.filter(b => {
+        const bDate = new Date(b.startTime);
+        bDate.setHours(0, 0, 0, 0);
+        return bDate.getTime() === now.getTime();
+      });
+    } else if (range === 'yesterday') {
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      bookingsToExport = bookingsSource.filter(b => {
+        const bDate = new Date(b.startTime);
+        bDate.setHours(0, 0, 0, 0);
+        return bDate.getTime() === yesterday.getTime();
+      });
+    } else if (range === 'week') {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 7);
+      bookingsToExport = bookingsSource.filter(b => {
+        const bDate = new Date(b.startTime);
+        return bDate >= weekAgo;
+      });
+    } else if (range === 'custom' && customExportDate) {
+      bookingsToExport = bookingsSource.filter(b => {
+        const bDateStr = new Date(b.startTime).toLocaleDateString('en-CA');
+        return bDateStr === customExportDate;
+      });
+    }
+    // 'all' case already handled by initial assignment
 
     // Sort by date ascending (oldest to newest)
     const sortedBookings = [...bookingsToExport].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
     setFilterApprovedOnly(false);
     setPendingExportBookings(sortedBookings);
+    setIsExportMenuOpen(false);
   };
 
   const handleCopyFromPreview = async () => {
@@ -191,14 +244,68 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
               </button>
             </div>
 
-            <div className="flex bg-tertiary p-1 rounded-xl border border-subtle hidden md:flex">
-              <button onClick={() => handleExportBookings('daily')} className="px-4 flex items-center justify-center gap-1.5 py-2 text-xs font-black rounded-lg transition-all text-secondary hover:bg-surface hover:text-primary hover:shadow-sm">
-                <Calendar size={14} /> העתק יומי
+            <div className="relative flex bg-surface rounded-xl" ref={exportMenuRef}>
+              <button
+                onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                className="flex items-center gap-2 px-4 py-2 bg-surface text-secondary border border-subtle rounded-xl text-xs font-black hover:text-brand hover:border-brand transition-all shadow-sm active:scale-95"
+              >
+                <FileSpreadsheet size={16} /> העתק נתונים ללוח
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isExportMenuOpen ? 'rotate-180' : ''}`} />
               </button>
-              <div className="w-px bg-subtle/50 my-1"></div>
-              <button onClick={() => handleExportBookings('all')} className="px-4 flex items-center justify-center gap-1.5 py-2 text-xs font-black rounded-lg transition-all text-secondary hover:bg-surface hover:text-primary hover:shadow-sm">
-                <FileSpreadsheet size={14} /> העתק הכל
-              </button>
+
+              {isExportMenuOpen && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-surface border border-subtle rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-3 border-b border-subtle bg-tertiary/30">
+                    <p className="text-[10px] font-black text-secondary uppercase tracking-widest px-1">טווחים מהירים</p>
+                  </div>
+                  <div className="p-1 space-y-0.5">
+                    <button onClick={() => handleExportBookings('today')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
+                      היום
+                      <Calendar size={14} className="opacity-50" />
+                    </button>
+                    <button onClick={() => handleExportBookings('yesterday')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
+                      אתמול
+                      <CalendarDays size={14} className="opacity-50" />
+                    </button>
+                    <button onClick={() => handleExportBookings('week')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
+                      7 ימים אחרונים
+                      <Clock size={14} className="opacity-50" />
+                    </button>
+                  </div>
+
+                  <div className="p-3 border-y border-subtle bg-tertiary/30">
+                    <p className="text-[10px] font-black text-secondary uppercase tracking-widest px-1">בחירת תאריך ספציפי</p>
+                  </div>
+                  <div className="p-3 space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-secondary mr-1">בחר תאריך מהלוח:</label>
+                      <input
+                        type="date"
+                        value={customExportDate}
+                        onChange={(e) => setCustomExportDate(e.target.value)}
+                        className="w-full px-3 py-2 bg-tertiary border border-subtle rounded-xl text-xs font-bold text-primary outline-none focus:border-brand transition-all"
+                      />
+                    </div>
+                    <button
+                      disabled={!customExportDate}
+                      onClick={() => handleExportBookings('custom')}
+                      className={`w-full py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${customExportDate
+                        ? 'bg-brand text-white shadow-lg shadow-brand/20 hover:bg-brand-hover'
+                        : 'bg-tertiary text-secondary cursor-not-allowed opacity-50'
+                        }`}
+                    >
+                      <Download size={14} /> העתק תאריך נבחר
+                    </button>
+                  </div>
+
+                  <div className="p-1 border-t border-subtle">
+                    <button onClick={() => handleExportBookings('all')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
+                      כל נתוני המערכת
+                      <ArrowLeftRight size={14} className="opacity-50" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {viewType === 'schedule' && (
