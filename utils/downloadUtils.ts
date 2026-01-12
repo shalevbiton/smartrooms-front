@@ -134,7 +134,6 @@ export const generateBookingsClipboardText = (bookings: Booking[], rooms: Room[]
     };
 
     return `
-סטטוס: ${getStatusText(b.status)}
 שם החדר: ${room?.name || 'לא ידוע'}
 תאריך: ${startTime.toLocaleDateString('he-IL')}
 שעות: ${startTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
@@ -145,6 +144,7 @@ export const generateBookingsClipboardText = (bookings: Booking[], rooms: Room[]
 מספר אישי חוקר: ${b.investigatorId}
 שם הנחקר: ${b.interrogatedName}
 ת"ז/מ"א נחקר: ${b.secondInvestigatorId}
+סטטוס: ${getStatusText(b.status)}
 `.trim();
   }).join('\n\n----------------------------------------\n\n');
 };
