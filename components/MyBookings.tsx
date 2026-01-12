@@ -116,8 +116,11 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     const exportType = type || (viewType === 'schedule' ? 'daily' : 'all');
     const bookingsToExport = exportType === 'daily' ? dailyBookings : filteredBookings;
 
+    // Sort by date ascending (oldest to newest)
+    const sortedBookings = [...bookingsToExport].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
     setFilterApprovedOnly(false);
-    setPendingExportBookings(bookingsToExport);
+    setPendingExportBookings(sortedBookings);
   };
 
   const handleCopyFromPreview = async () => {

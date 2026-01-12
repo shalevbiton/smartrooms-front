@@ -121,6 +121,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       fileNamePrefix = `date_${customExportDate}`;
     }
 
+    // Sort by date ascending (oldest to newest)
+    filteredForExport.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
     setFilterApprovedOnly(false);
     setPendingExportBookings(filteredForExport);
     // Initial text generation will be triggered by useEffect
