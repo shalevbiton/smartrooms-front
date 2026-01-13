@@ -159,7 +159,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     }
   }, [pendingExportBookings, filterApprovedOnly, rooms, users]);
 
-  const handleExportBookings = async (range: 'all' | 'today' | 'yesterday' | 'week' | 'custom' | 'daily' = 'all') => {
+  const handleExportBookings = async (range: 'all' | 'today' | 'tomorrow' | 'yesterday' | 'week' | 'custom' | 'daily' = 'all') => {
     // Note: 'daily' is kept for backward compatibility if needed, but we'll map it to 'today' or use logic below
 
     // If user clicked the button on mobile which passes no arg, or the old buttons
@@ -177,6 +177,14 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
         const bDate = new Date(b.startTime);
         bDate.setHours(0, 0, 0, 0);
         return bDate.getTime() === now.getTime();
+      });
+    } else if (range === 'tomorrow') {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      bookingsToExport = bookingsSource.filter(b => {
+        const bDate = new Date(b.startTime);
+        bDate.setHours(0, 0, 0, 0);
+        return bDate.getTime() === tomorrow.getTime();
       });
     } else if (range === 'yesterday') {
       const yesterday = new Date(now);
@@ -291,6 +299,10 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                   <button onClick={() => handleExportBookings('today')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
                     היום
                     <Calendar size={14} className="opacity-50" />
+                  </button>
+                  <button onClick={() => handleExportBookings('tomorrow')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
+                    מחר
+                    <CalendarDays size={14} className="opacity-50" />
                   </button>
                   <button onClick={() => handleExportBookings('yesterday')} className="w-full text-right px-4 py-2.5 text-xs font-bold text-primary hover:bg-brand/5 hover:text-brand rounded-xl flex items-center justify-between transition-colors">
                     אתמול

@@ -69,13 +69,13 @@ const UserManagement: React.FC<UserManagementProps> = ({
           <div
             key={user.id}
             className={`relative group bg-surface rounded-3xl border transition-all duration-300 flex flex-col overflow-hidden hover:shadow-xl hover:-translate-y-1 ${user.status === 'PENDING'
-                ? 'border-amber-500/50 shadow-amber-500/5'
-                : 'border-subtle shadow-sm'
+              ? 'border-amber-500/50 shadow-amber-500/5'
+              : 'border-subtle shadow-sm'
               }`}
           >
             {/* Top Status Bar */}
             <div className={`h-1.5 w-full ${user.role === 'ADMIN' ? 'bg-brand' :
-                user.status === 'PENDING' ? 'bg-amber-400' : 'bg-subtle'
+              user.status === 'PENDING' ? 'bg-amber-400' : 'bg-subtle'
               }`} />
 
             <div className="p-6 flex flex-col h-full">
@@ -103,8 +103,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                     </h3>
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${user.role === 'ADMIN'
-                          ? 'bg-brand/10 text-brand border border-brand/20'
-                          : 'bg-tertiary text-secondary border border-subtle'
+                        ? 'bg-brand/10 text-brand border border-brand/20'
+                        : 'bg-tertiary text-secondary border border-subtle'
                         }`}>
                         {user.role === 'ADMIN' ? <Shield size={10} /> : <UserIcon size={10} />}
                         {user.role === 'ADMIN' ? 'מנהל' : 'משתמש'}
@@ -119,8 +119,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       <button
                         onClick={() => user.role === 'ADMIN' ? onRevokeAdmin(user.id) : onPromoteUser(user.id)}
                         className={`p-2 rounded-xl transition-all ${user.role === 'ADMIN'
-                            ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
-                            : 'text-brand bg-brand/10 hover:bg-brand/20'
+                          ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
+                          : 'text-brand bg-brand/10 hover:bg-brand/20'
                           }`}
                         title={user.role === 'ADMIN' ? "בטל הרשאות ניהול" : "הפוך למנהל"}
                       >
@@ -222,7 +222,7 @@ const PasswordToggle = ({ password }: { password: string }) => {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 bg-tertiary border border-subtle rounded-xl max-w-full">
       <Key size={12} className="text-secondary" />
-      <span className="text-[10px] font-mono font-bold text-secondary uppercase tracking-tighter truncate min-w-[60px]">
+      <span className="text-[10px] font-mono font-bold text-secondary tracking-tighter truncate min-w-[60px]">
         {show ? password.replace('hash_', '') : '********'}
       </span>
       <button
