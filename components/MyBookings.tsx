@@ -99,6 +99,17 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
     });
   }, [bookings, isAdmin, currentUserId]);
 
+  const bookingsByDate = useMemo(() => Object.entries(
+    filteredBookings.reduce((groups, booking) => {
+      const date = new Date(booking.startTime);
+      date.setHours(0, 0, 0, 0);
+      const key = date.toISOString();
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(booking);
+      return groups;
+    }, {} as Record<string, Booking[]>)
+  ).sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime()), [filteredBookings]);
+
   const dailyBookings = useMemo(() => {
     return bookings.filter(b =>
       new Date(b.startTime).toLocaleDateString('en-CA') === selectedDate &&
@@ -352,174 +363,189 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                 <p className="text-secondary text-sm">נראה שעדיין לא ביצעת הזמנות חדרים.</p>
               </div>
             ) : (
-              filteredBookings.map((booking) => {
-                const room = getRoom(booking.roomId);
-                const status = getStatusConfig(booking.status);
-                const isExpanded = expandedId === booking.id;
-                const colorVar = getBookingColorVar(booking.id);
-
-                return (
-                  <div
-                    key={booking.id}
-                    id={`booking-row-${booking.id}`}
-                    className="bg-surface rounded-2xl border border-subtle shadow-sm overflow-hidden hover:border-brand/30 transition-all group"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-6 gap-4">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-white shadow-lg"
-                          style={{ backgroundColor: `var(${colorVar})` }}
-                        >
-                          <Clock size={24} />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-primary truncate">{booking.title}</h3>
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase ${status.color}`}>
-                              {status.text}
-                            </span>
-                          </div>
-                          <p className="text-xs text-secondary flex items-center gap-1.5 mt-1 font-medium">
-                            <MapPin size={12} className="text-brand" />
-                            {room?.name}
-                            {room?.locationType && <span className="opacity-75">({room.locationType === 'PRISON' ? 'כלא' : 'ימל"ם'})</span>}
-                            | {new Date(booking.startTime).toLocaleDateString('he-IL')}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 pt-4 md:pt-0 border-t md:border-t-0 border-subtle">
-                        <div className="text-left md:text-right">
-                          <p className="text-xs font-black text-primary">
-                            {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                          </p>
-                          <p className="text-[10px] text-secondary font-bold">משך: {Math.round((new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / 3600000)} שעות</p>
-                        </div>
-
-                        <div className="flex gap-2">
-                          {(booking.status === 'CANCELLED' || booking.status === 'REJECTED') && onAction && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onAction(booking.id, 'DELETE');
-                              }}
-                              className="p-2.5 text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                              title="מחק מההיסטוריה"
-                            >
-                              <Trash2 size={20} />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => setExpandedId(isExpanded ? null : booking.id)}
-                            className="p-2.5 text-secondary hover:bg-tertiary rounded-xl transition-all"
-                          >
-                            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {isExpanded && (
-                      <div className="p-6 bg-tertiary/30 border-t border-subtle space-y-6 animate-in slide-in-from-top-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-secondary uppercase tracking-widest">חוקר / מבצע</p>
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-surface border border-subtle flex items-center justify-center text-primary font-bold shadow-sm">
-                                {booking.title.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-primary">{booking.title}</p>
-                                <p className="text-[10px] text-brand font-bold">מ"א {booking.investigatorId}</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-secondary uppercase tracking-widest">הנחקר</p>
-                            <div className="flex items-center gap-2">
-                              <Users size={16} className="text-brand" />
-                              <div>
-                                <p className="text-sm font-bold text-primary">{booking.interrogatedName}</p>
-                                <p className="text-[10px] text-secondary font-bold">ת"ז/מ"א {booking.secondInvestigatorId}</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-secondary uppercase tracking-widest">סוג התיק</p>
-                            <div className="flex items-center gap-2">
-                              <FileText size={16} className="text-brand" />
-                              <p className="text-sm font-bold text-primary">{booking.type === 'TESTIMONY' ? 'עדות' : 'חקירה'}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-secondary uppercase tracking-widest">סוג העבירה</p>
-                            <div className="flex items-center gap-2">
-                              <AlertTriangle size={16} className="text-brand" />
-                              <p className="text-sm font-bold text-primary truncate" title={booking.offenses}>{booking.offenses}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-secondary uppercase tracking-widest">פעולות</p>
-                            <div className="flex gap-2">
-                              {booking.status === 'APPROVED' && onAction && (
-                                <>
-                                  {(new Date(booking.startTime) <= new Date() && new Date(booking.endTime) > new Date()) && (
-                                    <button
-                                      onClick={() => onAction(booking.id, 'CHECKOUT')}
-                                      className="flex-1 py-2 text-[10px] font-black text-white bg-brand hover:bg-brand-hover border border-transparent rounded-lg transition-all shadow-sm flex items-center justify-center gap-1.5"
-                                    >
-                                      <LogOut size={14} />
-                                      סיים שימוש
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => setActionBookingId(booking.id)}
-                                    className="flex-1 py-2 text-[10px] font-black text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all"
-                                  >
-                                    ביטול הזמנה
-                                  </button>
-                                </>
-                              )}
-                              {booking.status === 'PENDING' && isAdmin && onAction && (
-                                <button
-                                  onClick={() => onAction(booking.id, 'DELETE')}
-                                  className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
-                                >
-                                  מחק בקשה
-                                </button>
-                              )}
-                              {booking.status === 'REJECTED' && isAdmin && onAction && (
-                                <button
-                                  onClick={() => onAction(booking.id, 'DELETE')}
-                                  className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
-                                >
-                                  מחק הזמנה
-                                </button>
-                              )}
-                              {booking.status === 'CANCELLED' && onAction && (
-                                <button
-                                  onClick={() => onAction(booking.id, 'DELETE')}
-                                  className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
-                                >
-                                  מחק מההיסטוריה
-                                </button>
-                              )}
-                              {booking.status === 'COMPLETED' && isAdmin && onAction && (
-                                <button
-                                  onClick={() => onAction(booking.id, 'DELETE')}
-                                  className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
-                                >
-                                  מחק מההיסטוריה
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+              bookingsByDate.map(([dateKey, dateBookings]) => (
+                <div key={dateKey} className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-px bg-gradient-to-r from-transparent via-subtle to-transparent flex-1 opacity-50"></div>
+                    <span className="text-[10px] font-black text-secondary uppercase tracking-widest bg-surface border border-subtle px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
+                      <CalendarDays size={12} className="text-brand" />
+                      {new Date(dateKey).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' })}
+                    </span>
+                    <div className="h-px bg-gradient-to-r from-transparent via-subtle to-transparent flex-1 opacity-50"></div>
                   </div>
-                );
-              })
+
+                  <div className="space-y-4">
+                    {dateBookings.map((booking) => {
+                      const room = getRoom(booking.roomId);
+                      const status = getStatusConfig(booking.status);
+                      const isExpanded = expandedId === booking.id;
+                      const colorVar = getBookingColorVar(booking.id);
+
+                      return (
+                        <div
+                          key={booking.id}
+                          id={`booking-row-${booking.id}`}
+                          className="bg-surface rounded-2xl border border-subtle shadow-sm overflow-hidden hover:border-brand/30 transition-all group"
+                        >
+                          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-6 gap-4">
+                            <div className="flex items-center gap-4">
+                              <div
+                                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-white shadow-lg"
+                                style={{ backgroundColor: `var(${colorVar})` }}
+                              >
+                                <Clock size={24} />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-bold text-primary truncate">{booking.title}</h3>
+                                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase ${status.color}`}>
+                                    {status.text}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-secondary flex items-center gap-1.5 mt-1 font-medium">
+                                  <MapPin size={12} className="text-brand" />
+                                  {room?.name}
+                                  {room?.locationType && <span className="opacity-75">({room.locationType === 'PRISON' ? 'כלא' : 'ימל"ם'})</span>}
+                                  | {new Date(booking.startTime).toLocaleDateString('he-IL')}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 pt-4 md:pt-0 border-t md:border-t-0 border-subtle">
+                              <div className="text-left md:text-right">
+                                <p className="text-xs font-black text-primary">
+                                  {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                </p>
+                                <p className="text-[10px] text-secondary font-bold">משך: {Math.round((new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / 3600000)} שעות</p>
+                              </div>
+
+                              <div className="flex gap-2">
+                                {(booking.status === 'CANCELLED' || booking.status === 'REJECTED') && onAction && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onAction(booking.id, 'DELETE');
+                                    }}
+                                    className="p-2.5 text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                    title="מחק מההיסטוריה"
+                                  >
+                                    <Trash2 size={20} />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => setExpandedId(isExpanded ? null : booking.id)}
+                                  className="p-2.5 text-secondary hover:bg-tertiary rounded-xl transition-all"
+                                >
+                                  {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="p-6 bg-tertiary/30 border-t border-subtle space-y-6 animate-in slide-in-from-top-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-black text-secondary uppercase tracking-widest">חוקר / מבצע</p>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-surface border border-subtle flex items-center justify-center text-primary font-bold shadow-sm">
+                                      {booking.title.charAt(0)}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-bold text-primary">{booking.title}</p>
+                                      <p className="text-[10px] text-brand font-bold">מ"א {booking.investigatorId}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-black text-secondary uppercase tracking-widest">הנחקר</p>
+                                  <div className="flex items-center gap-2">
+                                    <Users size={16} className="text-brand" />
+                                    <div>
+                                      <p className="text-sm font-bold text-primary">{booking.interrogatedName}</p>
+                                      <p className="text-[10px] text-secondary font-bold">ת"ז/מ"א {booking.secondInvestigatorId}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-black text-secondary uppercase tracking-widest">סוג התיק</p>
+                                  <div className="flex items-center gap-2">
+                                    <FileText size={16} className="text-brand" />
+                                    <p className="text-sm font-bold text-primary">{booking.type === 'TESTIMONY' ? 'עדות' : 'חקירה'}</p>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-black text-secondary uppercase tracking-widest">סוג העבירה</p>
+                                  <div className="flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-brand" />
+                                    <p className="text-sm font-bold text-primary truncate" title={booking.offenses}>{booking.offenses}</p>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-black text-secondary uppercase tracking-widest">פעולות</p>
+                                  <div className="flex gap-2">
+                                    {booking.status === 'APPROVED' && onAction && (
+                                      <>
+                                        {(new Date(booking.startTime) <= new Date() && new Date(booking.endTime) > new Date()) && (
+                                          <button
+                                            onClick={() => onAction(booking.id, 'CHECKOUT')}
+                                            className="flex-1 py-2 text-[10px] font-black text-white bg-brand hover:bg-brand-hover border border-transparent rounded-lg transition-all shadow-sm flex items-center justify-center gap-1.5"
+                                          >
+                                            <LogOut size={14} />
+                                            סיים שימוש
+                                          </button>
+                                        )}
+                                        <button
+                                          onClick={() => setActionBookingId(booking.id)}
+                                          className="flex-1 py-2 text-[10px] font-black text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all"
+                                        >
+                                          ביטול הזמנה
+                                        </button>
+                                      </>
+                                    )}
+                                    {booking.status === 'PENDING' && isAdmin && onAction && (
+                                      <button
+                                        onClick={() => onAction(booking.id, 'DELETE')}
+                                        className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
+                                      >
+                                        מחק בקשה
+                                      </button>
+                                    )}
+                                    {booking.status === 'REJECTED' && isAdmin && onAction && (
+                                      <button
+                                        onClick={() => onAction(booking.id, 'DELETE')}
+                                        className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
+                                      >
+                                        מחק הזמנה
+                                      </button>
+                                    )}
+                                    {booking.status === 'CANCELLED' && onAction && (
+                                      <button
+                                        onClick={() => onAction(booking.id, 'DELETE')}
+                                        className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
+                                      >
+                                        מחק מההיסטוריה
+                                      </button>
+                                    )}
+                                    {booking.status === 'COMPLETED' && isAdmin && onAction && (
+                                      <button
+                                        onClick={() => onAction(booking.id, 'DELETE')}
+                                        className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-500/10 border border-slate-500/20 rounded-lg hover:bg-slate-500/20 transition-all"
+                                      >
+                                        מחק מההיסטוריה
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
             )}
           </div>
         ) : (

@@ -94,8 +94,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         return timeA - timeB;
       }
 
+
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
+
+  const bookingsByDate = Object.entries(
+    filteredBookings.reduce((groups, booking) => {
+      const date = new Date(booking.startTime);
+      date.setHours(0, 0, 0, 0);
+      const key = date.toISOString();
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(booking);
+      return groups;
+    }, {} as Record<string, Booking[]>)
+  ).sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime());
 
   const filteredUsers = pendingUsers.filter(u =>
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -331,137 +343,151 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="mb-12">
         {activeTab === 'bookings' && (
           <div className="grid grid-cols-1 gap-6">
-            {filteredBookings.map(booking => {
-              const room = getRoom(booking.roomId);
-              return (
-                <div key={booking.id} className="bg-surface rounded-3xl border border-subtle shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 hover:shadow-xl hover:border-brand/20 transition-all group">
-                  <div className="flex flex-col lg:flex-row">
-                    <div className="lg:w-72 bg-tertiary/30 p-6 flex flex-col justify-between border-l border-subtle">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-brand/10 text-brand rounded-2xl flex items-center justify-center border border-brand/20">
-                            <LayoutGrid size={24} />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-black text-secondary uppercase tracking-widest">מיקום החקירה</h4>
-                            <div>
-                              <p className="text-lg font-black text-primary leading-tight">{room?.name || 'חדר לא ידוע'}</p>
-                              {room?.locationType && <p className="text-xs font-bold text-secondary mt-0.5">{room.locationType === 'PRISON' ? 'כלא' : 'ימל"ם'}</p>}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm text-secondary font-medium">
-                            <Calendar size={16} className="text-brand" />
-                            {formatDate(booking.startTime)}
-                          </div>
-                          <div className="flex items-center gap-2 text-lg font-black text-primary">
-                            <Clock size={18} className="text-brand" />
-                            {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                            <span className="text-subtle mx-1">-</span>
-                            {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 pt-6 border-t border-subtle/50">
-                        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${booking.isRecorded ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-slate-500/10 border-slate-500/20 text-slate-500'}`}>
-                          {booking.isRecorded ? <Video size={16} className="animate-pulse" /> : <Video size={16} className="opacity-50" />}
-                          <span className="text-xs font-black">{booking.isRecorded ? 'הקלטה פעילה' : 'ללא הקלטה'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 p-6 flex flex-col justify-between">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-[10px] font-black text-secondary uppercase tracking-widest bg-tertiary w-fit px-3 py-1 rounded-full border border-subtle">
-                            <Users size={12} /> צדדים בחקירה
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <p className="text-[10px] font-bold text-secondary">חוקר מבצע</p>
-                              <p className="text-sm font-black text-primary truncate">{booking.title}</p>
-                              <p className="text-[10px] font-mono text-brand font-bold">מ"א {booking.investigatorId}</p>
-                              {booking.phoneNumber && (
-                                <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                                  <Phone size={10} /> {booking.phoneNumber}
-                                </p>
-                              )}
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-[10px] font-bold text-secondary">הנחקר</p>
-                              <p className="text-sm font-black text-primary truncate">{booking.interrogatedName}</p>
-                              <p className="text-[10px] font-mono text-slate-500 font-bold">ת"ז/מ"א {booking.secondInvestigatorId}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-[10px] font-black text-brand uppercase tracking-widest bg-brand/5 w-fit px-3 py-1 rounded-full border border-brand/20">
-                            <ShieldAlert size={12} /> פרטי התיק
-                          </div>
-                          <div className="bg-tertiary/30 p-3 rounded-2xl border border-subtle grid grid-cols-2 gap-2">
-                            <div>
-                              <p className="text-[10px] font-bold text-secondary mb-1">סוג התיק:</p>
-                              <p className="text-sm font-black text-primary leading-tight">
-                                {booking.type === 'TESTIMONY' ? 'עדות' : 'חקירה'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-secondary mb-1">סוג העבירה:</p>
-                              <p className="text-sm font-black text-primary leading-tight">{booking.offenses}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-subtle">
-                        <div className="flex items-center gap-3 text-xs text-secondary font-medium">
-                          <div className="w-8 h-8 rounded-full bg-surface border border-subtle flex items-center justify-center text-primary font-bold shadow-sm">
-                            {booking.userName.charAt(0)}
-                          </div>
-                          <span>הוגש ע"י <strong>{booking.userName}</strong> ב- {new Date(booking.createdAt).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</span>
-                        </div>
-
-                        <div className="flex gap-3 w-full sm:w-auto">
-                          {booking.status === 'PENDING' && (
-                            <>
-                              <button
-                                onClick={() => setRejectingBookingId(booking.id)}
-                                className="flex-1 sm:flex-none px-6 py-2.5 text-sm font-black text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition-all"
-                              >
-                                דחה בקשה
-                              </button>
-                              <button
-                                onClick={() => onApprove(booking.id)}
-                                className="flex-1 sm:flex-none px-8 py-2.5 text-sm font-black text-white bg-brand hover:bg-brand-hover rounded-xl transition-all shadow-lg shadow-brand/20 active:scale-95 flex items-center justify-center gap-2"
-                              >
-                                <Check size={18} />
-                                אשר הזמנה
-                              </button>
-                            </>
-                          )}
-                          {booking.status === 'APPROVED' && (
-                            <div className="px-6 py-2.5 bg-emerald-100 text-emerald-700 rounded-xl font-black border border-emerald-200 flex items-center gap-2">
-                              <Check size={18} />
-                              <span>הזמנה מאושרת</span>
-                            </div>
-                          )}
-                          {(booking.status === 'REJECTED' || booking.status === 'CANCELLED') && (
-                            <div className="px-6 py-2.5 bg-red-100 text-red-700 rounded-xl font-black border border-red-200 flex items-center gap-2">
-                              <X size={18} />
-                              <span>{booking.status === 'REJECTED' ? 'הזמנה נדחתה' : 'הזמנה בוטלה'}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            {bookingsByDate.map(([dateKey, dateBookings]) => (
+              <div key={dateKey} className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-px bg-gradient-to-r from-transparent via-subtle to-transparent flex-1 opacity-50"></div>
+                  <span className="text-[10px] font-black text-secondary uppercase tracking-widest bg-surface border border-subtle px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
+                    <CalendarDays size={12} className="text-brand" />
+                    {new Date(dateKey).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' })}
+                  </span>
+                  <div className="h-px bg-gradient-to-r from-transparent via-subtle to-transparent flex-1 opacity-50"></div>
                 </div>
-              );
-            })}
+                <div className="grid grid-cols-1 gap-6">
+                  {dateBookings.map(booking => {
+                    const room = getRoom(booking.roomId);
+                    return (
+                      <div key={booking.id} className="bg-surface rounded-3xl border border-subtle shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 hover:shadow-xl hover:border-brand/20 transition-all group">
+                        <div className="flex flex-col lg:flex-row">
+                          <div className="lg:w-72 bg-tertiary/30 p-6 flex flex-col justify-between border-l border-subtle">
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-brand/10 text-brand rounded-2xl flex items-center justify-center border border-brand/20">
+                                  <LayoutGrid size={24} />
+                                </div>
+                                <div>
+                                  <h4 className="text-xs font-black text-secondary uppercase tracking-widest">מיקום החקירה</h4>
+                                  <div>
+                                    <p className="text-lg font-black text-primary leading-tight">{room?.name || 'חדר לא ידוע'}</p>
+                                    {room?.locationType && <p className="text-xs font-bold text-secondary mt-0.5">{room.locationType === 'PRISON' ? 'כלא' : 'ימל"ם'}</p>}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-sm text-secondary font-medium">
+                                  <Calendar size={16} className="text-brand" />
+                                  {formatDate(booking.startTime)}
+                                </div>
+                                <div className="flex items-center gap-2 text-lg font-black text-primary">
+                                  <Clock size={18} className="text-brand" />
+                                  {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                  <span className="text-subtle mx-1">-</span>
+                                  {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-6 pt-6 border-t border-subtle/50">
+                              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${booking.isRecorded ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-slate-500/10 border-slate-500/20 text-slate-500'}`}>
+                                {booking.isRecorded ? <Video size={16} className="animate-pulse" /> : <Video size={16} className="opacity-50" />}
+                                <span className="text-xs font-black">{booking.isRecorded ? 'הקלטה פעילה' : 'ללא הקלטה'}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 p-6 flex flex-col justify-between">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-[10px] font-black text-secondary uppercase tracking-widest bg-tertiary w-fit px-3 py-1 rounded-full border border-subtle">
+                                  <Users size={12} /> צדדים בחקירה
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-secondary">חוקר מבצע</p>
+                                    <p className="text-sm font-black text-primary truncate">{booking.title}</p>
+                                    <p className="text-[10px] font-mono text-brand font-bold">מ"א {booking.investigatorId}</p>
+                                    {booking.phoneNumber && (
+                                      <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                                        <Phone size={10} /> {booking.phoneNumber}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-secondary">הנחקר</p>
+                                    <p className="text-sm font-black text-primary truncate">{booking.interrogatedName}</p>
+                                    <p className="text-[10px] font-mono text-slate-500 font-bold">ת"ז/מ"א {booking.secondInvestigatorId}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-[10px] font-black text-brand uppercase tracking-widest bg-brand/5 w-fit px-3 py-1 rounded-full border border-brand/20">
+                                  <ShieldAlert size={12} /> פרטי התיק
+                                </div>
+                                <div className="bg-tertiary/30 p-3 rounded-2xl border border-subtle grid grid-cols-2 gap-2">
+                                  <div>
+                                    <p className="text-[10px] font-bold text-secondary mb-1">סוג התיק:</p>
+                                    <p className="text-sm font-black text-primary leading-tight">
+                                      {booking.type === 'TESTIMONY' ? 'עדות' : 'חקירה'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-bold text-secondary mb-1">סוג העבירה:</p>
+                                    <p className="text-sm font-black text-primary leading-tight">{booking.offenses}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-subtle">
+                              <div className="flex items-center gap-3 text-xs text-secondary font-medium">
+                                <div className="w-8 h-8 rounded-full bg-surface border border-subtle flex items-center justify-center text-primary font-bold shadow-sm">
+                                  {booking.userName.charAt(0)}
+                                </div>
+                                <span>הוגש ע"י <strong>{booking.userName}</strong> ב- {new Date(booking.createdAt).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</span>
+                              </div>
+
+                              <div className="flex gap-3 w-full sm:w-auto">
+                                {booking.status === 'PENDING' && (
+                                  <>
+                                    <button
+                                      onClick={() => setRejectingBookingId(booking.id)}
+                                      className="flex-1 sm:flex-none px-6 py-2.5 text-sm font-black text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition-all"
+                                    >
+                                      דחה בקשה
+                                    </button>
+                                    <button
+                                      onClick={() => onApprove(booking.id)}
+                                      className="flex-1 sm:flex-none px-8 py-2.5 text-sm font-black text-white bg-brand hover:bg-brand-hover rounded-xl transition-all shadow-lg shadow-brand/20 active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                      <Check size={18} />
+                                      אשר הזמנה
+                                    </button>
+                                  </>
+                                )}
+                                {booking.status === 'APPROVED' && (
+                                  <div className="px-6 py-2.5 bg-emerald-100 text-emerald-700 rounded-xl font-black border border-emerald-200 flex items-center gap-2">
+                                    <Check size={18} />
+                                    <span>הזמנה מאושרת</span>
+                                  </div>
+                                )}
+                                {(booking.status === 'REJECTED' || booking.status === 'CANCELLED') && (
+                                  <div className="px-6 py-2.5 bg-red-100 text-red-700 rounded-xl font-black border border-red-200 flex items-center gap-2">
+                                    <X size={18} />
+                                    <span>{booking.status === 'REJECTED' ? 'הזמנה נדחתה' : 'הזמנה בוטלה'}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
 
             {filteredBookings.length === 0 && (
               <div className="py-20 text-center bg-tertiary/30 rounded-[2rem] border border-dashed border-subtle">
