@@ -107,7 +107,7 @@ const CheckoutGallery: React.FC<CheckoutGalleryProps> = ({ bookings, rooms }) =>
                       <Calendar size={14} className="text-brand" />
                       <span className="truncate">{new Date(item.endTime).toLocaleDateString('he-IL')}</span>
                       <Clock size={14} className="text-brand mr-1" />
-                      <span>{new Date(item.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>{new Date(item.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                     </div>
                   </div>
                 </div>

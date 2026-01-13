@@ -386,23 +386,53 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">שעת התחלה</label>
-                <input
-                  required
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className={`w-full px-4 py-2.5 rounded-lg border bg-surface text-primary font-bold text-sm outline-none transition-all ${conflict || isPastTime ? 'border-red-500 bg-red-50/5' : 'border-subtle focus:border-brand'}`}
-                />
+                <div className={`relative w-full px-4 py-2.5 rounded-lg border bg-surface text-primary font-bold text-sm flex items-center justify-center gap-1 transition-all ${conflict || isPastTime ? 'border-red-500 bg-red-50/5' : 'border-subtle focus-within:border-brand'}`}>
+                  <select
+                    value={startTime.split(':')[1]}
+                    onChange={(e) => setStartTime(`${startTime.split(':')[0]}:${e.target.value}`)}
+                    className="bg-transparent outline-none appearance-none cursor-pointer text-center w-8 p-0 border-none focus:ring-0"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0')).map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <span className="text-secondary select-none">:</span>
+                  <select
+                    value={startTime.split(':')[0]}
+                    onChange={(e) => setStartTime(`${e.target.value}:${startTime.split(':')[1]}`)}
+                    className="bg-transparent outline-none appearance-none cursor-pointer text-center w-8 p-0 border-none focus:ring-0"
+                  >
+                    {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                  <Clock size={14} className="absolute left-3 text-secondary pointer-events-none opacity-50" />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">שעת סיום</label>
-                <input
-                  required
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className={`w-full px-4 py-2.5 rounded-lg border bg-surface text-primary font-bold text-sm outline-none transition-all ${conflict || isInvalidTime ? 'border-red-500 bg-red-50/5' : 'border-subtle focus:border-brand'}`}
-                />
+                <div className={`relative w-full px-4 py-2.5 rounded-lg border bg-surface text-primary font-bold text-sm flex items-center justify-center gap-1 transition-all ${conflict || isInvalidTime ? 'border-red-500 bg-red-50/5' : 'border-subtle focus-within:border-brand'}`}>
+                  <select
+                    value={endTime.split(':')[1]}
+                    onChange={(e) => setEndTime(`${endTime.split(':')[0]}:${e.target.value}`)}
+                    className="bg-transparent outline-none appearance-none cursor-pointer text-center w-8 p-0 border-none focus:ring-0"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0')).map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <span className="text-secondary select-none">:</span>
+                  <select
+                    value={endTime.split(':')[0]}
+                    onChange={(e) => setEndTime(`${e.target.value}:${endTime.split(':')[1]}`)}
+                    className="bg-transparent outline-none appearance-none cursor-pointer text-center w-8 p-0 border-none focus:ring-0"
+                  >
+                    {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                  <Clock size={14} className="absolute left-3 text-secondary pointer-events-none opacity-50" />
+                </div>
               </div>
             </div>
 

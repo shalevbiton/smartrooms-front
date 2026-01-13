@@ -87,7 +87,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const priorityA = getStatusPriority(a.status);
       const priorityB = getStatusPriority(b.status);
       if (priorityA !== priorityB) return priorityA - priorityB;
-      return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+
+      const timeA = new Date(a.startTime).getTime();
+      const timeB = new Date(b.startTime).getTime();
+      if (timeA !== timeB) {
+        return timeA - timeB;
+      }
+
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
 
   const filteredUsers = pendingUsers.filter(u =>
@@ -351,9 +358,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                           <div className="flex items-center gap-2 text-lg font-black text-primary">
                             <Clock size={18} className="text-brand" />
-                            {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
                             <span className="text-subtle mx-1">-</span>
-                            {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
                           </div>
                         </div>
                       </div>

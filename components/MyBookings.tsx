@@ -88,7 +88,14 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
       const priorityA = getStatusPriority(a.status);
       const priorityB = getStatusPriority(b.status);
       if (priorityA !== priorityB) return priorityA - priorityB;
-      return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+
+      const timeA = new Date(a.startTime).getTime();
+      const timeB = new Date(b.startTime).getTime();
+      if (timeA !== timeB) {
+        return timeA - timeB;
+      }
+
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
   }, [bookings, isAdmin, currentUserId]);
 
@@ -384,7 +391,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ bookings, rooms, currentUserId,
                       <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 pt-4 md:pt-0 border-t md:border-t-0 border-subtle">
                         <div className="text-left md:text-right">
                           <p className="text-xs font-black text-primary">
-                            {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })} - {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(booking.startTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(booking.endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false })}
                           </p>
                           <p className="text-[10px] text-secondary font-bold">משך: {Math.round((new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / 3600000)} שעות</p>
                         </div>

@@ -16,7 +16,7 @@ interface RoomCardProps {
 }
 
 const RoomOp = ({ name, endTime }: { name: string, endTime: string }) => {
-  const time = new Date(endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+  const time = new Date(endTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false });
   return (
     <div className="mb-3 bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
       <div className="flex items-center gap-2">
