@@ -288,7 +288,7 @@ const App: React.FC = () => {
 
     try {
       const localStartStr = `${data.date}T${data.startTime || '00:00'}:00`;
-      const localEndStr = `${data.date}T${data.endTime || '23:59'}:00`;
+      const localEndStr = `${data.endDate || data.date}T${data.endTime || '23:59'}:00`;
 
       // Convert to UTC ISO strings for storage safely
       const sDate = new Date(localStartStr);
@@ -609,7 +609,7 @@ const App: React.FC = () => {
 
         <div className="max-w-7xl mx-auto">
           {currentView === 'calendar' && (
-            <DateSelectionCalendar onSelectDate={handleDateSelection} rooms={rooms} bookings={bookings} />
+            <DateSelectionCalendar onSelectDate={handleDateSelection} rooms={rooms} bookings={bookings} isAdmin={isAdmin} />
           )}
 
           {currentView === 'rooms' && (

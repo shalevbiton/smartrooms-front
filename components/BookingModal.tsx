@@ -23,7 +23,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
   const [phoneNumber, setPhoneNumber] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('09:00');
+
   const [endTime, setEndTime] = useState('10:00');
+  const [endDate, setEndDate] = useState('');
   const [isRecorded, setIsRecorded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [conflict, setConflict] = useState<Booking | null>(null);
@@ -40,6 +42,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
       setSecondInvestigatorId('');
       setPhoneNumber('');
       setDate(selectedDate || today);
+      setEndDate(selectedDate || today);
 
       if (prefilledStartTime) {
         setStartTime(prefilledStartTime);
@@ -62,7 +65,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
   }, [isOpen, selectedDate, prefilledStartTime]);
 
   const requestedStartNum = useMemo(() => new Date(`${date}T${startTime}:00`).getTime(), [date, startTime]);
-  const requestedEndNum = useMemo(() => new Date(`${date}T${endTime}:00`).getTime(), [date, endTime]);
+  const requestedEndNum = useMemo(() => new Date(`${endDate || date}T${endTime}:00`).getTime(), [endDate, date, endTime]);
 
   const isToday = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -91,7 +94,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
     });
 
     setConflict(overlappingBooking || null);
-  }, [date, startTime, endTime, room, allBookings, requestedStartNum, requestedEndNum]);
+  }, [date, endDate, startTime, endTime, room, allBookings, requestedStartNum, requestedEndNum]);
 
   const pastPercentage = useMemo(() => {
     if (!isToday) return 0;
@@ -125,16 +128,19 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
   };
 
   const setQuickDuration = (hours: number) => {
-    const [h, m] = startTime.split(':').map(Number);
-    const totalMins = h * 60 + m + (hours * 60);
-    const endH = Math.min(23, Math.floor(totalMins / 60));
-    const endM = totalMins % 60;
+    const startD = new Date(`${date}T${startTime}:00`);
+    const newEnd = new Date(startD.getTime() + hours * 60 * 60 * 1000);
+    const endH = newEnd.getHours();
+    const endM = newEnd.getMinutes();
+    const endYMD = newEnd.toLocaleDateString('en-CA');
+
+    setEndDate(endYMD);
     setEndTime(`${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (conflict || isInvalidTime || isPastTime) return;
+    if (conflict || isInvalidTime || isPastTime || isTooLong) return;
 
     setIsSubmitting(true);
     setTimeout(() => {
@@ -149,6 +155,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
         phoneNumber,
         description: '',
         date,
+        endDate,
         startTime,
         endTime,
         isRecorded
@@ -163,6 +170,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   const isInvalidTime = requestedEndNum <= requestedStartNum;
+  const isTooLong = requestedEndNum - requestedStartNum > (48 * 60 * 60 * 1000);
   const timelineMarkers = [0, 6, 12, 18, 23];
 
   return (
@@ -411,7 +419,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">שעת סיום</label>
-                <div className={`relative w-full px-4 py-2.5 rounded-lg border bg-surface text-primary font-bold text-sm flex items-center justify-center gap-1 transition-all ${conflict || isInvalidTime ? 'border-red-500 bg-red-50/5' : 'border-subtle focus-within:border-brand'}`}>
+                <div className={`relative w-full px-4 py-2.5 rounded-lg border bg-surface text-primary font-bold text-sm flex items-center justify-center gap-1 transition-all ${conflict || isInvalidTime || isTooLong ? 'border-red-500 bg-red-50/5' : 'border-subtle focus-within:border-brand'}`}>
                   <select
                     value={endTime.split(':')[1]}
                     onChange={(e) => setEndTime(`${endTime.split(':')[0]}:${e.target.value}`)}
@@ -432,6 +440,30 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
                     ))}
                   </select>
                   <Clock size={14} className="absolute left-3 text-secondary pointer-events-none opacity-50" />
+                </div>
+
+                <div className="relative mt-2">
+                  <select
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className={`w-full px-4 py-2 rounded-lg border bg-surface text-secondary text-xs font-bold appearance-none outline-none focus:border-brand transition-all ${isTooLong ? 'border-red-500 text-red-500' : 'border-subtle'}`}
+                  >
+                    <option value={date}>היום ({new Date(date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' })})</option>
+                    {(() => {
+                      const d = new Date(date);
+                      d.setDate(d.getDate() + 1);
+                      const tmr = d.toLocaleDateString('en-CA');
+                      const d2 = new Date(date);
+                      d2.setDate(d2.getDate() + 2);
+                      const afterTmr = d2.toLocaleDateString('en-CA');
+                      return (
+                        <>
+                          <option value={tmr}>מחר ({d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' })})</option>
+                          <option value={afterTmr}>מחרתיים ({d2.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' })})</option>
+                        </>
+                      );
+                    })()}
+                  </select>
                 </div>
               </div>
             </div>
@@ -458,13 +490,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
           </div>
 
           {/* Conflict Warnings */}
-          {(conflict || isPastTime || isInvalidTime) && (
+          {(conflict || isPastTime || isInvalidTime || isTooLong) && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-700 animate-in fade-in slide-in-from-top-2">
               <AlertCircle size={18} className="shrink-0 mt-0.5" />
               <div className="text-xs font-medium">
                 {conflict && <p>קיימת התנגשות עם הזמנה קיימת בשעות אלו.</p>}
                 {isPastTime && <p>לא ניתן לבצע הזמנה לשעה שכבר עברה.</p>}
                 {isInvalidTime && <p>שעת הסיום חייבת להיות אחרי שעת ההתחלה.</p>}
+                {isTooLong && <p>משך ההזמנה מוגבל ל-48 שעות מקסימום.</p>}
               </div>
             </div>
           )}
@@ -472,8 +505,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, isOpen, onClose, onSu
           <div className="pt-6">
             <button
               type="submit"
-              disabled={isSubmitting || !!conflict || isInvalidTime || isPastTime}
-              className={`w-full py-4 rounded-lg font-bold text-base flex items-center justify-center gap-3 transition-all relative ${conflict || isInvalidTime || isPastTime
+              disabled={isSubmitting || !!conflict || isInvalidTime || isPastTime || isTooLong}
+              className={`w-full py-4 rounded-lg font-bold text-base flex items-center justify-center gap-3 transition-all relative ${conflict || isInvalidTime || isPastTime || isTooLong
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                 : 'bg-slate-900 hover:bg-black text-white'
                 }`}
